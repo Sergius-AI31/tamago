@@ -183,9 +183,9 @@
         <!-- 2. BARRAS DE ESTADO CON COLORES GUÍA -->
         <section class="bg-slate-900/90 border-b border-slate-800 px-3 py-1.5 grid grid-cols-4 gap-2 shrink-0 z-20">
             <!-- Hambre y Sed (Rojo para Hambre, Azul para Sed) -->
-            <div class="bg-slate-800/90 rounded-xl px-2 py-1 border border-rose-500/30">
+            <div aria-label="Hambre y sed" class="bg-slate-800/90 rounded-xl px-2 py-1 border border-rose-500/30">
                 <div class="flex justify-between items-center text-[10px] font-extrabold text-rose-300 mb-0.5">
-                    <span><i class="fa-solid fa-burger mr-1"></i>HAMBRE</span>
+                    <span aria-hidden="true" title="Hambre"><i class="fa-solid fa-burger"></i></span>
                     <span id="statHungerTxt">90%</span>
                 </div>
                 <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden flex">
@@ -195,9 +195,9 @@
             </div>
 
             <!-- Higiene (Verde como el botón Baño) -->
-            <div class="bg-slate-800/90 rounded-xl px-2 py-1 border border-emerald-500/30">
+            <div aria-label="Higiene" class="bg-slate-800/90 rounded-xl px-2 py-1 border border-emerald-500/30">
                 <div class="flex justify-between items-center text-[10px] font-extrabold text-emerald-300 mb-0.5">
-                    <span><i class="fa-solid fa-shower mr-1"></i>Limpio</span>
+                    <span aria-hidden="true" title="Higiene"><i class="fa-solid fa-shower"></i></span>
                     <span id="statHygieneTxt">100%</span>
                 </div>
                 <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
@@ -206,9 +206,9 @@
             </div>
 
             <!-- Felicidad (Amarillo como el botón Jugar) -->
-            <div class="bg-slate-800/90 rounded-xl px-2 py-1 border border-amber-400/30">
+            <div aria-label="Felicidad" class="bg-slate-800/90 rounded-xl px-2 py-1 border border-amber-400/30">
                 <div class="flex justify-between items-center text-[10px] font-extrabold text-amber-300 mb-0.5">
-                    <span><i class="fa-solid fa-gamepad mr-1"></i>Feliz</span>
+                    <span aria-hidden="true" title="Felicidad"><i class="fa-solid fa-gamepad"></i></span>
                     <span id="statHappyTxt">90%</span>
                 </div>
                 <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
@@ -217,9 +217,9 @@
             </div>
 
             <!-- Energía (Azul como el botón Dormir) -->
-            <div class="bg-slate-800/90 rounded-xl px-2 py-1 border border-indigo-400/30">
+            <div aria-label="Energía" class="bg-slate-800/90 rounded-xl px-2 py-1 border border-indigo-400/30">
                 <div class="flex justify-between items-center text-[10px] font-extrabold text-indigo-300 mb-0.5">
-                    <span><i class="fa-solid fa-moon mr-1"></i>Sueño</span>
+                    <span aria-hidden="true" title="Energía"><i class="fa-solid fa-moon"></i></span>
                     <span id="statEnergyTxt">100%</span>
                 </div>
                 <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
@@ -540,6 +540,141 @@
             { id: 'juice',  name: 'Jugo',        icon: '🧃', price: 8,  hunger: 4,  thirst: 35, happy: 12, type: 'DRINK' },
             { id: 'soda',   name: 'Refresco',    icon: '🥤', price: 12, hunger: 4,  thirst: 40, happy: 18, type: 'DRINK' }
         ];
+
+        const CARE_INTERVAL_RANGES = {
+            hunger: [75, 120],
+            sleepingHunger: [180, 300],
+            paidHunger: [150, 240],
+            paidSleepingHunger: [360, 600],
+            thirst: [45, 75],
+            sleepingThirst: [120, 180],
+            energyLoss: [75, 105],
+            energyGain: [5, 8],
+            nightEnergyGain: [3, 5],
+            deprivedEnergyGain: [10, 14],
+            happiness: [75, 120],
+            sickEffect: [12, 22],
+            hygiene: [100, 140],
+            sleepingHygiene: [240, 360],
+            outdoorHygiene: [60, 100],
+            outdoorHappiness: [18, 30],
+            poop: [12 * 60, 18 * 60],
+            sleepingPoop: [20 * 60, 40 * 60],
+            paidFoodSatiety: 10 * 60
+        };
+
+        function randomCareInterval(range) {
+            return Math.floor(range[0] + Math.random() * (range[1] - range[0] + 1));
+        }
+
+        function getCareIntervalRange(timerName) {
+            const isSleeping = pet.isSleeping;
+            const isNight = isRealNight();
+            const hasPaidSatiety = (pet.satietyUntil || 0) > Date.now();
+
+            if (timerName === 'hunger') {
+                if (isSleeping && isNight) return hasPaidSatiety ? CARE_INTERVAL_RANGES.paidSleepingHunger : CARE_INTERVAL_RANGES.sleepingHunger;
+                if (isSleeping) return CARE_INTERVAL_RANGES.sleepingHunger;
+                return hasPaidSatiety ? CARE_INTERVAL_RANGES.paidHunger : CARE_INTERVAL_RANGES.hunger;
+            }
+            if (timerName === 'thirst') return isSleeping ? CARE_INTERVAL_RANGES.sleepingThirst : CARE_INTERVAL_RANGES.thirst;
+            if (timerName === 'energyGain') {
+                if (pet.isNightDeprived && !isNight) return CARE_INTERVAL_RANGES.deprivedEnergyGain;
+                return isNight ? CARE_INTERVAL_RANGES.nightEnergyGain : CARE_INTERVAL_RANGES.energyGain;
+            }
+            if (timerName === 'hygiene') return isSleeping && isNight ? CARE_INTERVAL_RANGES.sleepingHygiene : CARE_INTERVAL_RANGES.hygiene;
+            if (timerName === 'poop') return isSleeping ? CARE_INTERVAL_RANGES.sleepingPoop : CARE_INTERVAL_RANGES.poop;
+            if (timerName === 'outdoorHygiene') return CARE_INTERVAL_RANGES.outdoorHygiene;
+            return CARE_INTERVAL_RANGES[timerName] || CARE_INTERVAL_RANGES.happiness;
+        }
+
+        function ensureCareTimers() {
+            if (!pet) return;
+            const timerNames = ['hunger', 'thirst', 'energyLoss', 'energyGain', 'happiness', 'hygiene', 'outdoorHygiene', 'outdoorHappiness', 'sickEffect', 'poop'];
+            if (!pet.careTimers || typeof pet.careTimers !== 'object') pet.careTimers = {};
+            timerNames.forEach(name => {
+                if (!Number.isFinite(pet.careTimers[name])) {
+                    pet.careTimers[name] = pet.ageSeconds + randomCareInterval(getCareIntervalRange(name));
+                }
+            });
+        }
+
+        function resetCareTimer(name, baseAge = pet.ageSeconds) {
+            ensureCareTimers();
+            pet.careTimers[name] = baseAge + randomCareInterval(getCareIntervalRange(name));
+        }
+
+        function resetCareTimersForStateChange() {
+            ['hunger', 'thirst', 'energyLoss', 'energyGain', 'happiness', 'hygiene', 'outdoorHygiene', 'outdoorHappiness', 'sickEffect', 'poop']
+                .forEach(name => resetCareTimer(name));
+        }
+
+        function advanceCareTimers(fromAge, toAge, isOffline = false) {
+            ensureCareTimers();
+            let addedPoops = 0;
+            const timerNames = Object.keys(pet.careTimers);
+
+            for (const name of timerNames) {
+                let nextAt = pet.careTimers[name];
+                while (nextAt <= toAge) {
+                    const eventAge = Math.max(fromAge + 1, nextAt);
+                    pet.ageSeconds = eventAge;
+
+                    if (name === 'hunger' && (!pet.isSleeping || isRealNight())) {
+                        pet.hunger = Math.max(0, pet.hunger - 1);
+                    } else if (name === 'thirst') {
+                        pet.thirst = Math.max(0, (pet.thirst !== undefined ? pet.thirst : 15) - 1);
+                    } else if (name === 'energyLoss' && !pet.isSleeping) {
+                        pet.energy = Math.max(0, pet.energy - 1);
+                    } else if (name === 'energyGain' && pet.isSleeping) {
+                        pet.energy = Math.min(100, pet.energy + 1);
+                    } else if (name === 'happiness' && !pet.isSleeping) {
+                        pet.happiness = Math.max(0, pet.happiness - 1);
+                    } else if (name === 'hygiene' && (!pet.isSleeping || isRealNight())) {
+                        pet.hygiene = Math.max(0, pet.hygiene - 1);
+                    } else if (name === 'outdoorHygiene' && uiState.location !== 'HOME' && !pet.isSleeping) {
+                        pet.hygiene = Math.max(0, pet.hygiene - 1);
+                    } else if (name === 'outdoorHappiness' && uiState.location !== 'HOME' && !pet.isSleeping) {
+                        pet.happiness = Math.min(100, pet.happiness + 1);
+                    } else if (name === 'sickEffect' && pet.isSick && !pet.isSleeping) {
+                        pet.happiness = Math.max(0, pet.happiness - 2);
+                        pet.energy = Math.max(5, pet.energy - 1);
+                        updateTemperamentTrait('annoyance', 2);
+                        updateTemperamentTrait('playfulness', -3);
+                        updateTemperamentTrait('affection', -1);
+                    } else if (name === 'poop' && pet.poopCount < 5) {
+                        const canPoop = !pet.isSleeping
+                            || (isRealNight() && pet.willPoopThisSleep && !pet.poopedThisSleep);
+                        if (canPoop && spawnPoop(5)) {
+                            addedPoops++;
+                            pet.hygiene = Math.max(0, pet.hygiene - (pet.isSleeping ? 10 : 8));
+                            if (!pet.isSleeping) {
+                                pet.hunger = Math.max(0, pet.hunger - 5);
+                                if (!isOffline) {
+                                    SFX.bad();
+                                    showBanner('¡HIZO DEL BAÑO EN EL PISO! 💩');
+                                }
+                            } else {
+                                pet.poopedThisSleep = true;
+                            }
+                        }
+                    }
+
+                    nextAt = eventAge + randomCareInterval(getCareIntervalRange(name));
+                }
+                pet.careTimers[name] = nextAt;
+            }
+
+            pet.ageSeconds = toAge;
+            return addedPoops;
+        }
+
+        function shiftCareTimers(seconds) {
+            if (!pet || !pet.careTimers) return;
+            Object.keys(pet.careTimers).forEach(name => {
+                pet.careTimers[name] += seconds;
+            });
+        }
 
         const PLACES_CATALOG = [
             { id: 'HOME',  name: 'Sala',   icon: '🏠' },
@@ -1297,10 +1432,14 @@
             if (pet.isOnTrip) {
                 return;
             }
+            const previousAge = pet.ageSeconds;
+            const targetAge = previousAge + seconds;
+            ensureCareTimers();
             if (pet.isSleeping && isConvalescing()) {
                 pet.convalesceUntil -= seconds * 1000;
             }
-            pet.ageSeconds += seconds;
+            pet.ageSeconds = targetAge;
+            const addedPoops = advanceCareTimers(previousAge, targetAge, true);
             checkEvolution();
             const mins = Math.floor(seconds / 60);
 
@@ -1308,33 +1447,9 @@
                 const hourNow = new Date().getHours();
                 const isNightHours = (hourNow >= 21 || hourNow < 7);
 
-                const offlineStartedAt = Date.now() - seconds * 1000;
-                const paidSatietySeconds = Math.max(0, Math.min(seconds, ((pet.satietyUntil || 0) - offlineStartedAt) / 1000));
-                const regularMinutes = Math.max(0, mins - Math.floor(paidSatietySeconds / 60));
-                const paidMinutes = Math.floor(paidSatietySeconds / 60);
-                const hungerDrop = Math.floor((regularMinutes + paidMinutes / 2) / 8);
-                const happyDrop = Math.floor(mins / 10);
-                const hygieneDrop = Math.floor(mins / 10);
-
-                pet.hunger = Math.max(0, pet.hunger - hungerDrop);
-                pet.happiness = Math.max(5, pet.happiness - happyDrop);
-                pet.hygiene = Math.max(0, pet.hygiene - hygieneDrop);
-
-                // Baño predecible sin aleatoriedad excesiva: 1 vez cada 45 minutos desconectado
-                const newPoops = Math.floor(mins / 45);
-                let addedPoops = 0;
-                for (let i = 0; i < newPoops; i++) {
-                    if (spawnPoop(5)) {
-                        addedPoops++;
-                        pet.hygiene = Math.max(0, pet.hygiene - 10);
-                    }
-                }
-
                 if (pet.isSleeping || isNightHours) {
-                    pet.energy = Math.min(100, pet.energy + mins * 2);
                     pet.awakeSeconds = 0;
                 } else {
-                    pet.energy = Math.max(10, pet.energy - Math.floor(mins / 12));
                     pet.awakeSeconds = (pet.awakeSeconds || 0) + seconds;
                 }
 
@@ -1396,10 +1511,6 @@
         function isRealNight() {
             const h = new Date().getHours();
             return (h >= 21 || h < 8);
-        }
-
-        function getHungerDecayPeriod(baseSeconds) {
-            return pet && pet.satietyUntil > Date.now() ? baseSeconds * 2 : baseSeconds;
         }
 
         function getDeviceDayPhase() {
@@ -1484,35 +1595,24 @@
             updateRealClockUI();
             if (!pet || !pet.isAlive) return;
 
+            const previousAge = pet.ageSeconds;
             pet.ageSeconds++;
             checkEvolution();
 
             if (pet.stage !== 'EGG') {
                 if (!pet.isOnTrip) {
+                    advanceCareTimers(previousAge, pet.ageSeconds);
                     if (pet.isSleeping) {
-                        // Si estuvo desvelado por no dormir de noche, recuperar energía de día tarda el doble (4s vs 2s)
-                        const sleepSpeed = (!isRealNight() && pet.isNightDeprived) ? 4 : 2;
-                        if (pet.ageSeconds % sleepSpeed === 0) pet.energy = Math.min(100, pet.energy + 1);
-
-                        // Durante el horario nocturno real (21:00 a 08:00), el desgaste es mínimo pero amanece con hambre e higiene baja
                         if (isRealNight()) {
-                            if (pet.ageSeconds % getHungerDecayPeriod(120) === 0) pet.hunger = Math.max(0, pet.hunger - 1);
-                            if (pet.ageSeconds % 150 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
-                            // Hace del baño máximo 1 vez por noche/sueño si le tocó por probabilidad (solo para Bebé y Niño)
                             if (pet.willPoopThisSleep === undefined) {
                                 pet.willPoopThisSleep = ['BABY', 'CHILD'].includes(pet.stage) && (Math.random() < 0.25);
-                            }
-                            if (pet.willPoopThisSleep && !pet.poopedThisSleep && pet.poopCount < 5 && pet.ageSeconds % 60 === 0 && Math.random() < 0.20) {
-                                if (spawnPoop(5)) {
-                                    pet.hygiene = Math.max(0, pet.hygiene - 10);
-                                    pet.poopedThisSleep = true;
-                                }
                             }
                         }
 
                         // Durante la noche real (9 PM a 8 AM), no se despierta solo aunque la barra llegue al 100%
                         if (pet.energy >= 100 && !isRealNight() && !isConvalescing()) {
                             pet.isSleeping = false;
+                            resetCareTimersForStateChange();
                             pet.lightsOn = true;
                             pet.poopedThisSleep = false;
                             pet.willPoopThisSleep = false;
@@ -1550,14 +1650,9 @@
                             pet.nightDepriveThresholdTicks = 0; // Se reinicia para recalcular en la siguiente noche
                         }
 
-                        if (pet.ageSeconds % 35 === 0) pet.energy = Math.max(0, pet.energy - 1);
-                        if (pet.ageSeconds % getHungerDecayPeriod(28) === 0) pet.hunger = Math.max(0, pet.hunger - 1);
-                        if (pet.ageSeconds % 16 === 0) pet.thirst = Math.max(0, (pet.thirst !== undefined ? pet.thirst : 15) - 1);
-                        if (pet.ageSeconds % 32 === 0) pet.happiness = Math.max(0, pet.happiness - 1);
-                        if (pet.ageSeconds % 40 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
-
                         if (pet.energy <= 10 && !pet.isSleeping) {
                             pet.isSleeping = true;
+                            resetCareTimersForStateChange();
                             pet.lightsOn = false;
                             pet.poopedThisSleep = false;
                             pet.willPoopThisSleep = ['BABY', 'CHILD'].includes(pet.stage) && (Math.random() < 0.25);
@@ -1568,22 +1663,6 @@
                     if (pet.isSleeping && isConvalescing()) {
                         // El reloj real ya reduce el reposo; dormir aplica un segundo de avance extra.
                         pet.convalesceUntil -= 1000;
-                    }
-
-                    // Hace del baño en posiciones aleatorias (máximo 5 acumuladas)
-                    if (pet.ageSeconds % 180 === 0 && !pet.isSleeping && pet.poopCount < 5) {
-                        if (spawnPoop(5)) {
-                            pet.hygiene = Math.max(0, pet.hygiene - 14);
-                            pet.hunger = Math.max(0, pet.hunger - 15);
-                            SFX.bad();
-                            showBanner('¡HIZO DEL BAÑO EN EL PISO! 💩');
-                        }
-                    }
-
-                    // Estar/jugar al aire libre (Parque, Playa, Dulces) da diversión pero ensucia más rápido
-                    if (uiState.location !== 'HOME' && !pet.isSleeping) {
-                        if (pet.ageSeconds % 16 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
-                        if (pet.ageSeconds % 22 === 0) pet.happiness = Math.min(100, pet.happiness + 1);
                     }
 
                     // 1. Repercusión por NO LIMPIAR (acumulación de popós o higiene crítica -> Infección)
@@ -1626,15 +1705,6 @@
                         pet.exhaustTicks = 0;
                     }
 
-                    // Consecuencias activas de estar enfermo: pierde ánimo, energía y se deteriora su temperamento
-                    if (pet.isSick && !pet.isSleeping && pet.ageSeconds % 15 === 0) {
-                        pet.happiness = Math.max(0, pet.happiness - 2);
-                        pet.energy = Math.max(5, pet.energy - 1);
-                        updateTemperamentTrait('annoyance', 2);
-                        updateTemperamentTrait('playfulness', -3);
-                        updateTemperamentTrait('affection', -1);
-                    }
-
                     // Si pasa muchísimo tiempo sin cuidados y enfermo, parte a una estrella y queda en el historial
                     if ((pet.hunger === 0 || pet.hygiene === 0) && pet.isSick) {
                         pet.sickTicks = (pet.sickTicks || 0) + 1;
@@ -1659,6 +1729,8 @@
                         pet.wantsDiscipline = true;
                         SFX.tap();
                     }
+                } else {
+                    shiftCareTimers(1);
                 }
 
                 // Lógica multijugador: actualización de hasta 3 visitas activas simultáneamente
@@ -2017,11 +2089,14 @@
 
             pet.coins -= item.price;
             pet.hunger = Math.min(hungerLimit, pet.hunger + item.hunger);
+            pet.thirst = Math.min(100, (pet.thirst !== undefined ? pet.thirst : 15) + item.thirst);
             pet.starveTicks = 0;
             pet.weight += (item.type === 'SNACK' ? 2 : 1);
+            if (item.thirst > 0) resetCareTimer('thirst');
             if (item.price > 0) {
-                pet.satietyUntil = Math.max(Date.now(), pet.satietyUntil || 0) + (10 * 60 * 1000);
+                pet.satietyUntil = Math.max(Date.now(), pet.satietyUntil || 0) + CARE_INTERVAL_RANGES.paidFoodSatiety * 1000;
             }
+            resetCareTimer('hunger');
 
             // Si tenía mucha hambre pero le diste lo que NO le gusta, se lo come pero se molesta
             if (isDisliked) {
@@ -2176,6 +2251,7 @@
                 showBanner('¡SE ENOJÓ POR DESPERTARLA EN LA NOCHE! 😡🌙');
             }
             pet.isSleeping = !pet.isSleeping;
+            resetCareTimersForStateChange();
             pet.lightsOn = !pet.isSleeping;
             if (pet.isSleeping) {
                 pet.poopedThisSleep = false;
