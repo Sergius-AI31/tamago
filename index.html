@@ -165,6 +165,11 @@
                     <i id="soundIcon" class="fa-solid fa-volume-high text-xs"></i>
                 </button>
 
+                <!-- Botón Actualizar -->
+                <button onclick="refreshApp()" aria-label="Actualizar aplicación" title="Actualizar aplicación" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 flex items-center justify-center">
+                    <i class="fa-solid fa-rotate-right text-xs"></i>
+                </button>
+
                 <!-- Botón Ayuda -->
                 <button onclick="toggleModal('helpModal', true)" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 flex items-center justify-center">
                     <i class="fa-solid fa-question text-xs"></i>
@@ -636,6 +641,12 @@
                 : 'fa-solid fa-volume-xmark text-xs text-slate-500';
             if (soundEnabled) SFX.tap();
             saveGame();
+        }
+
+        function refreshApp() {
+            const refreshUrl = new URL(window.location.href);
+            refreshUrl.searchParams.set('_refresh', Date.now().toString());
+            window.location.replace(refreshUrl.toString());
         }
 
         /**************************************************************
