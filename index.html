@@ -1272,6 +1272,9 @@
             if (pet.isOnTrip) {
                 return;
             }
+            if (pet.isSleeping && isConvalescing()) {
+                pet.convalesceUntil -= seconds * 1000;
+            }
             pet.ageSeconds += seconds;
             checkEvolution();
             const mins = Math.floor(seconds / 60);
@@ -1475,7 +1478,7 @@
                         }
 
                         // Durante la noche real (9 PM a 8 AM), no se despierta solo aunque la barra llegue al 100%
-                        if (pet.energy >= 100 && !isRealNight()) {
+                        if (pet.energy >= 100 && !isRealNight() && !isConvalescing()) {
                             pet.isSleeping = false;
                             pet.lightsOn = true;
                             pet.poopedThisSleep = false;
@@ -1527,6 +1530,11 @@
                             pet.willPoopThisSleep = ['BABY', 'CHILD'].includes(pet.stage) && (Math.random() < 0.25);
                             showBanner('TIENE SUEÑO 💤');
                         }
+                    }
+
+                    if (pet.isSleeping && isConvalescing()) {
+                        // El reloj real ya reduce el reposo; dormir aplica un segundo de avance extra.
+                        pet.convalesceUntil -= 1000;
                     }
 
                     // Hace del baño en posiciones aleatorias (máximo 5 acumuladas)
@@ -1737,8 +1745,13 @@
             const sleepIcon = document.getElementById('sleepBtnIcon');
             const sleepTxt = document.getElementById('sleepBtnText');
             if (pet.isSleeping) {
-                sleepIcon.className = 'fa-solid fa-sun text-lg mb-0.5 text-amber-300';
-                sleepTxt.textContent = 'Despertar';
+                if (isConvalescing()) {
+                    sleepIcon.className = 'fa-solid fa-moon text-lg mb-0.5';
+                    sleepTxt.textContent = 'Reposo';
+                } else {
+                    sleepIcon.className = 'fa-solid fa-sun text-lg mb-0.5 text-amber-300';
+                    sleepTxt.textContent = 'Despertar';
+                }
             } else {
                 sleepIcon.className = 'fa-solid fa-moon text-lg mb-0.5';
                 sleepTxt.textContent = 'Dormir';
@@ -1779,7 +1792,7 @@
                         </div>
                     `);
                 }
-                if (pet.hunger < 55) {
+                if (pet.hunger < (pet.isSick || isConvalescing() ? 50 : 55)) {
                     setButtonHighlight('btnFeed', true);
                     pills.push(`
                         <button onclick="openFeedDrawer()" class="px-3 py-1.5 rounded-2xl bg-rose-600 text-white font-extrabold text-xs shadow-lg border-2 border-white flex items-center gap-1.5 animate-bounce">
@@ -1862,7 +1875,7 @@
             document.getElementById('subMenuDrawer').classList.add('hidden');
         }
 
-        // 1. COMER (Cambia a la Cocina con Mesa y respeta saciedad, disgustos y caprichos)
+        // 1. COMER (Enferma o convaleciente: puede comer hasta 50% y no rechaza por caprichos)
         function openFeedDrawer() {
             if (!canInteract()) return;
             ensurePetBrain();
@@ -1889,21 +1902,20 @@
 
         function feedPetItem(foodId) {
             if (!canInteract()) return;
-            if (pet.isSick || isConvalescing()) {
-                SFX.bad();
-                uiState.curiousAnim = 'REFUSE';
-                uiState.curiousTimer = 75;
-                showBanner('¡SE SIENTE MAL Y NO QUIERE COMER! 🤒🍽️');
-                closeDrawer();
-                return;
-            }
             const item = FOOD_CATALOG.find(f => f.id === foodId);
             if (!item) return;
             ensurePetBrain();
             closeDrawer();
+            const isUnwell = pet.isSick || isConvalescing();
+            const hungerLimit = isUnwell ? 50 : 100;
+
+            if (isUnwell && pet.hunger >= hungerLimit) {
+                showBanner('¡YA COMIÓ LO SUFICIENTE POR AHORA! 🍽️');
+                return;
+            }
 
             // A) RECHAZO POR ESTAR LLENO: Ya no sigue comiendo y si lo obligas se molesta y cambia su temperamento
-            if (pet.hunger >= 92) {
+            if (!isUnwell && pet.hunger >= 92) {
                 SFX.bad();
                 updateTemperamentTrait('annoyance', 18);
                 updateTemperamentTrait('affection', -6);
@@ -1923,7 +1935,7 @@
             const isPickyNow = (Date.now() < pet.aiBrain.pickyEaterUntil);
 
             // B) RECHAZO POR CAPRICHO / MAL HUMOR O COMIDA QUE NO LE GUSTA
-            if (isDisliked && (pet.hunger > 35 || pet.aiBrain.annoyance >= 40)) {
+            if (!isUnwell && isDisliked && (pet.hunger > 35 || pet.aiBrain.annoyance >= 40)) {
                 SFX.bad();
                 updateTemperamentTrait('annoyance', 15);
                 updateTemperamentTrait('affection', -5);
@@ -1937,7 +1949,7 @@
                 return;
             }
 
-            if (isPickyNow && item.id !== favFood.id && item.type !== 'SNACK' && pet.hunger > 40) {
+            if (!isUnwell && isPickyNow && item.id !== favFood.id && item.type !== 'SNACK' && pet.hunger > 40) {
                 SFX.bad();
                 updateTemperamentTrait('annoyance', 10);
                 uiState.curiousAnim = 'REFUSE';
@@ -1956,7 +1968,8 @@
             }
 
             pet.coins -= item.price;
-            pet.hunger = Math.min(100, pet.hunger + item.hunger);
+            pet.hunger = Math.min(hungerLimit, pet.hunger + item.hunger);
+            pet.starveTicks = 0;
             pet.weight += (item.type === 'SNACK' ? 2 : 1);
 
             // Si tenía mucha hambre pero le diste lo que NO le gusta, se lo come pero se molesta
@@ -2086,7 +2099,11 @@
             if (!pet || pet.stage === 'EGG') return;
             ensurePetBrain();
             closeDrawer();
-            if (!pet.isSleeping && pet.energy >= 92 && getDeviceDayPhase().id !== 'NIGHT') {
+            if (pet.isSleeping && isConvalescing()) {
+                showBanner('DEBE DORMIR HASTA TERMINAR SU REPOSO 🩹💤');
+                return;
+            }
+            if (!pet.isSleeping && pet.energy >= 92 && !isConvalescing() && getDeviceDayPhase().id !== 'NIGHT') {
                 SFX.bad();
                 updateTemperamentTrait('annoyance', 12);
                 uiState.curiousAnim = 'REFUSE';
