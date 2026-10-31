@@ -230,6 +230,16 @@
             <canvas id="gameCanvas" width="240" height="220" class="cursor-pointer"></canvas>
             <div class="crt-overlay absolute inset-0"></div>
 
+            <div id="convalescenceProgress" class="hidden pointer-events-none absolute top-2.5 left-2.5 right-2.5 z-20 rounded-xl border border-amber-300/70 bg-slate-950/85 px-3 py-2 text-white shadow-lg">
+                <div class="mb-1 flex items-center justify-between text-[10px] font-extrabold">
+                    <span>🩹 REPOSO</span>
+                    <span id="convalescenceTimeLeft">0:00</span>
+                </div>
+                <div id="convalescenceProgressTrack" role="progressbar" aria-label="Tiempo de reposo restante" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" class="h-2 w-full overflow-hidden rounded-full bg-slate-700">
+                    <div id="convalescenceProgressBar" class="h-full rounded-full bg-amber-400 transition-all duration-1000" style="width: 100%"></div>
+                </div>
+            </div>
+
             <!-- Burbujas de alerta arriba con el MISMO COLOR e ICONO del botón de abajo -->
             <div id="statusPills" class="absolute top-2.5 left-2.5 right-2.5 flex flex-wrap gap-2 z-20"></div>
 
@@ -1218,6 +1228,9 @@
                     return;
                 }
                 pet = data.pet;
+                if (isConvalescing() && !pet.convalesceDurationMs) {
+                    pet.convalesceDurationMs = pet.convalesceUntil - Date.now();
+                }
                 if (!pet.ownedDecor) pet.ownedDecor = ['ball'];
                 if (!Array.isArray(pet.placedDecor)) {
                     pet.placedDecor = ['ball'];
@@ -1753,6 +1766,21 @@
             document.getElementById('statEnergyTxt').textContent = `${pet.energy}%`;
             document.getElementById('statEnergyBar').style.width = `${pet.energy}%`;
 
+            const restProgress = document.getElementById('convalescenceProgress');
+            const restIsSleeping = pet.isSleeping && isConvalescing();
+            restProgress.classList.toggle('hidden', !restIsSleeping);
+            if (restIsSleeping) {
+                const remainingMs = Math.max(0, pet.convalesceUntil - Date.now());
+                const totalMs = Math.max(1, pet.convalesceDurationMs || remainingMs);
+                const remainingPercent = Math.max(0, Math.min(100, (remainingMs / totalMs) * 100));
+                const remainingSeconds = Math.ceil(remainingMs / 1000);
+                const minutes = Math.floor(remainingSeconds / 60);
+                const seconds = String(remainingSeconds % 60).padStart(2, '0');
+                document.getElementById('convalescenceTimeLeft').textContent = `${minutes}:${seconds}`;
+                document.getElementById('convalescenceProgressBar').style.width = `${remainingPercent}%`;
+                document.getElementById('convalescenceProgressTrack').setAttribute('aria-valuenow', `${Math.round(remainingPercent)}`);
+            }
+
             const sleepIcon = document.getElementById('sleepBtnIcon');
             const sleepTxt = document.getElementById('sleepBtnText');
             if (pet.isSleeping) {
@@ -2177,7 +2205,8 @@
             // Rango dinámico para sentirse mejor (5, 10, 15, 20, 30, 45 o 60 min)
             const recoveryMinsList = [5, 10, 15, 20, 30, 45, 60];
             const chosenMins = recoveryMinsList[Math.floor(Math.random() * recoveryMinsList.length)];
-            pet.convalesceUntil = Date.now() + (chosenMins * 60 * 1000);
+            pet.convalesceDurationMs = chosenMins * 60 * 1000;
+            pet.convalesceUntil = Date.now() + pet.convalesceDurationMs;
             pet.snacksRow = 0;
             pet.starveTicks = 0;
             pet.dirtyTicks = 0;
