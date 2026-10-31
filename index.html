@@ -2202,8 +2202,8 @@
             const oldReason = pet.sickReason || '';
             pet.isSick = false;
             pet.sickReason = '';
-            // Rango dinámico para sentirse mejor (5, 10, 15, 20, 30, 45 o 60 min)
-            const recoveryMinsList = [5, 10, 15, 20, 30, 45, 60];
+            // Duración variable de reposo entre 2 y 15 minutos.
+            const recoveryMinsList = [2, 4, 6, 8, 10, 12, 15];
             const chosenMins = recoveryMinsList[Math.floor(Math.random() * recoveryMinsList.length)];
             pet.convalesceDurationMs = chosenMins * 60 * 1000;
             pet.convalesceUntil = Date.now() + pet.convalesceDurationMs;
