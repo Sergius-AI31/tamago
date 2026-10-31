@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0f172a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -101,6 +101,9 @@
             transform: translateY(3px);
             box-shadow: 0 1px 0 rgba(0,0,0,0.35);
         }
+        footer.action-dock {
+            padding-bottom: max(2rem, env(safe-area-inset-bottom));
+        }
         .species-card.selected {
             border-color: #fbbf24;
             background-color: rgba(251, 191, 36, 0.18);
@@ -133,7 +136,7 @@
 <body class="h-[100dvh] w-screen flex items-center justify-center bg-slate-950">
 
     <!-- CONTENEDOR PRINCIPAL ESTILO APP MÓVIL -->
-    <div class="w-full h-full max-w-md bg-slate-900 flex flex-col justify-between overflow-hidden shadow-2xl border-x border-slate-800 relative">
+    <div class="w-full h-full min-h-0 max-w-md bg-slate-900 flex flex-col justify-between overflow-hidden shadow-2xl border-x border-slate-800 relative">
 
         <!-- 1. CABECERA SUPERIOR: NOMBRE, RELOJ REAL, MONEDAS Y BOTONES DE SISTEMA -->
         <header class="bg-slate-900/95 border-b border-slate-800 px-3 py-2 flex items-center justify-between shrink-0 z-20">
@@ -226,7 +229,7 @@
         </section>
 
         <!-- 3. PANTALLA INTERACTIVA DEL MUNDO TAMAGOTCHI / HABITACIÓN (CANVAS A COLOR) -->
-        <main class="relative flex-1 w-full overflow-hidden bg-sky-200 flex items-center justify-center">
+        <main class="relative min-h-0 flex-1 w-full overflow-hidden bg-sky-200 flex items-center justify-center">
             <canvas id="gameCanvas" width="240" height="220" class="cursor-pointer"></canvas>
             <div class="crt-overlay absolute inset-0"></div>
 
@@ -271,7 +274,7 @@
         </div>
 
         <!-- 5. DOCK DE ACCIONES CON COLORES GUÍA -->
-        <footer class="bg-slate-900 border-t border-slate-800 p-2.5 shrink-0 z-20">
+        <footer class="action-dock bg-slate-900 border-t border-slate-800 p-2.5 shrink-0 z-20">
             <div class="grid grid-cols-4 gap-2">
                 <!-- ROJO = COMER -->
                 <button id="btnFeed" onclick="openFeedDrawer()" class="action-btn bg-rose-600 hover:bg-rose-500 text-white rounded-2xl py-2 px-1 flex flex-col items-center justify-center border border-rose-400/40">
