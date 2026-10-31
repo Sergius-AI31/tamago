@@ -657,9 +657,7 @@
         }
 
         function refreshApp() {
-            const refreshUrl = new URL(window.location.href);
-            refreshUrl.searchParams.set('_refresh', Date.now().toString());
-            window.location.replace(refreshUrl.toString());
+            window.location.reload();
         }
 
         /**************************************************************
@@ -1310,7 +1308,11 @@
                 const hourNow = new Date().getHours();
                 const isNightHours = (hourNow >= 21 || hourNow < 7);
 
-                const hungerDrop = Math.floor(mins / 8);
+                const offlineStartedAt = Date.now() - seconds * 1000;
+                const paidSatietySeconds = Math.max(0, Math.min(seconds, ((pet.satietyUntil || 0) - offlineStartedAt) / 1000));
+                const regularMinutes = Math.max(0, mins - Math.floor(paidSatietySeconds / 60));
+                const paidMinutes = Math.floor(paidSatietySeconds / 60);
+                const hungerDrop = Math.floor((regularMinutes + paidMinutes / 2) / 8);
                 const happyDrop = Math.floor(mins / 10);
                 const hygieneDrop = Math.floor(mins / 10);
 
@@ -1394,6 +1396,10 @@
         function isRealNight() {
             const h = new Date().getHours();
             return (h >= 21 || h < 8);
+        }
+
+        function getHungerDecayPeriod(baseSeconds) {
+            return pet && pet.satietyUntil > Date.now() ? baseSeconds * 2 : baseSeconds;
         }
 
         function getDeviceDayPhase() {
@@ -1490,7 +1496,7 @@
 
                         // Durante el horario nocturno real (21:00 a 08:00), el desgaste es mínimo pero amanece con hambre e higiene baja
                         if (isRealNight()) {
-                            if (pet.ageSeconds % 120 === 0) pet.hunger = Math.max(0, pet.hunger - 1);
+                            if (pet.ageSeconds % getHungerDecayPeriod(120) === 0) pet.hunger = Math.max(0, pet.hunger - 1);
                             if (pet.ageSeconds % 150 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
                             // Hace del baño máximo 1 vez por noche/sueño si le tocó por probabilidad (solo para Bebé y Niño)
                             if (pet.willPoopThisSleep === undefined) {
@@ -1545,7 +1551,7 @@
                         }
 
                         if (pet.ageSeconds % 35 === 0) pet.energy = Math.max(0, pet.energy - 1);
-                        if (pet.ageSeconds % 28 === 0) pet.hunger = Math.max(0, pet.hunger - 1);
+                        if (pet.ageSeconds % getHungerDecayPeriod(28) === 0) pet.hunger = Math.max(0, pet.hunger - 1);
                         if (pet.ageSeconds % 16 === 0) pet.thirst = Math.max(0, (pet.thirst !== undefined ? pet.thirst : 15) - 1);
                         if (pet.ageSeconds % 32 === 0) pet.happiness = Math.max(0, pet.happiness - 1);
                         if (pet.ageSeconds % 40 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
@@ -2013,6 +2019,9 @@
             pet.hunger = Math.min(hungerLimit, pet.hunger + item.hunger);
             pet.starveTicks = 0;
             pet.weight += (item.type === 'SNACK' ? 2 : 1);
+            if (item.price > 0) {
+                pet.satietyUntil = Math.max(Date.now(), pet.satietyUntil || 0) + (10 * 60 * 1000);
+            }
 
             // Si tenía mucha hambre pero le diste lo que NO le gusta, se lo come pero se molesta
             if (isDisliked) {
