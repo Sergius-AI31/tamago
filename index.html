@@ -1349,10 +1349,11 @@
         function checkEvolution() {
             if (!pet || !pet.isAlive) return;
             let next = pet.stage;
-            if (pet.stage === 'EGG' && pet.ageSeconds >= 8) next = 'BABY';
-            else if (pet.stage === 'BABY' && pet.ageSeconds >= 300) next = 'CHILD';
-            else if (pet.stage === 'CHILD' && pet.ageSeconds >= 1200) next = 'TEEN';
-            else if (pet.stage === 'TEEN' && pet.ageSeconds >= 3600) next = 'ADULT';
+            // Tiempos de crecimiento ajustados a 1 mes total (30 días = 2,592,000 segundos)
+            if (pet.stage === 'EGG' && pet.ageSeconds >= 10) next = 'BABY';                      // Huevo: 10 segundos
+            else if (pet.stage === 'BABY' && pet.ageSeconds >= 259200) next = 'CHILD';          // Bebé: 3 días (259,200 s)
+            else if (pet.stage === 'CHILD' && pet.ageSeconds >= 1036800) next = 'TEEN';         // Niño: 9 días más (12 días acum. = 1,036,800 s)
+            else if (pet.stage === 'TEEN' && pet.ageSeconds >= 2592000) next = 'ADULT';         // Joven: 18 días más (30 días acum. = 2,592,000 s)
 
             if (next !== pet.stage) {
                 pet.stage = next;
@@ -1383,10 +1384,14 @@
                     if (isRealNight()) {
                         if (pet.ageSeconds % 120 === 0) pet.hunger = Math.max(0, pet.hunger - 1);
                         if (pet.ageSeconds % 150 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
-                        // Ocasionalmente hace del baño mientras duerme en la noche
-                        if (pet.ageSeconds % 300 === 0 && pet.poopCount < 5) {
+                        // Hace del baño máximo 1 vez por noche/sueño si le tocó por probabilidad (solo para Bebé y Niño)
+                        if (pet.willPoopThisSleep === undefined) {
+                            pet.willPoopThisSleep = ['BABY', 'CHILD'].includes(pet.stage) && (Math.random() < 0.25);
+                        }
+                        if (pet.willPoopThisSleep && !pet.poopedThisSleep && pet.poopCount < 5 && pet.ageSeconds % 60 === 0 && Math.random() < 0.20) {
                             if (spawnPoop(5)) {
                                 pet.hygiene = Math.max(0, pet.hygiene - 10);
+                                pet.poopedThisSleep = true;
                             }
                         }
                     }
@@ -1395,6 +1400,8 @@
                     if (pet.energy >= 100 && !isRealNight()) {
                         pet.isSleeping = false;
                         pet.lightsOn = true;
+                        pet.poopedThisSleep = false;
+                        pet.willPoopThisSleep = false;
                         if (pet.isNightDeprived) {
                             pet.isSick = true;
                             pet.sickReason = 'DESVELO EXCESIVO';
@@ -1438,6 +1445,8 @@
                     if (pet.energy <= 10 && !pet.isSleeping) {
                         pet.isSleeping = true;
                         pet.lightsOn = false;
+                        pet.poopedThisSleep = false;
+                        pet.willPoopThisSleep = ['BABY', 'CHILD'].includes(pet.stage) && (Math.random() < 0.25);
                         showBanner('TIENE SUEÑO 💤');
                     }
                 }
@@ -1993,6 +2002,13 @@
             }
             pet.isSleeping = !pet.isSleeping;
             pet.lightsOn = !pet.isSleeping;
+            if (pet.isSleeping) {
+                pet.poopedThisSleep = false;
+                pet.willPoopThisSleep = ['BABY', 'CHILD'].includes(pet.stage) && (Math.random() < 0.25);
+            } else {
+                pet.poopedThisSleep = false;
+                pet.willPoopThisSleep = false;
+            }
             uiState.sceneOverride = null;
             SFX.select();
             showBanner(pet.isSleeping ? 'A DORMIR EN SU CAMA 🛏️🌙' : '¡BUENOS DÍAS! ☀️');
@@ -3615,7 +3631,7 @@
                 const scaleMap = { EGG: 3, BABY: 3, CHILD: 4, TEEN: 4, ADULT: 5 };
                 let sc = scaleMap[pet.stage] || 4;
                 const frames = getCurrentPetFrames();
-                let animIdx = Math.floor(uiState.frame / 22) % 2;
+                let animIdx = pet.isSleeping ? 0 : Math.floor(uiState.frame / 22) % 2;
 
                 const inSpecialRoom = pet.isSleeping || (uiState.mode === 'ANIMATING' && ['KITCHEN', 'BATHROOM', 'HOSPITAL', 'SCHOOL'].includes(uiState.sceneOverride));
                 let drawX = (pet.stage === 'EGG' || inSpecialRoom) ? Math.floor(120 - (6 * sc)) : Math.floor(uiState.petX);
