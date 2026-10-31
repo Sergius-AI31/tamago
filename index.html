@@ -1268,6 +1268,10 @@
         });
 
         function applyOfflineProgress(seconds) {
+            // FIX: Si está de viaje, el tiempo se congela: no hambre, no popó, no enfermedad
+            if (pet.isOnTrip) {
+                return;
+            }
             pet.ageSeconds += seconds;
             checkEvolution();
             const mins = Math.floor(seconds / 60);
@@ -1448,177 +1452,179 @@
             checkEvolution();
 
             if (pet.stage !== 'EGG') {
-                if (pet.isSleeping) {
-                    // Si estuvo desvelado por no dormir de noche, recuperar energía de día tarda el doble (4s vs 2s)
-                    const sleepSpeed = (!isRealNight() && pet.isNightDeprived) ? 4 : 2;
-                    if (pet.ageSeconds % sleepSpeed === 0) pet.energy = Math.min(100, pet.energy + 1);
+                if (!pet.isOnTrip) {
+                    if (pet.isSleeping) {
+                        // Si estuvo desvelado por no dormir de noche, recuperar energía de día tarda el doble (4s vs 2s)
+                        const sleepSpeed = (!isRealNight() && pet.isNightDeprived) ? 4 : 2;
+                        if (pet.ageSeconds % sleepSpeed === 0) pet.energy = Math.min(100, pet.energy + 1);
 
-                    // Durante el horario nocturno real (21:00 a 08:00), el desgaste es mínimo pero amanece con hambre e higiene baja
-                    if (isRealNight()) {
-                        if (pet.ageSeconds % 120 === 0) pet.hunger = Math.max(0, pet.hunger - 1);
-                        if (pet.ageSeconds % 150 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
-                        // Hace del baño máximo 1 vez por noche/sueño si le tocó por probabilidad (solo para Bebé y Niño)
-                        if (pet.willPoopThisSleep === undefined) {
-                            pet.willPoopThisSleep = ['BABY', 'CHILD'].includes(pet.stage) && (Math.random() < 0.25);
-                        }
-                        if (pet.willPoopThisSleep && !pet.poopedThisSleep && pet.poopCount < 5 && pet.ageSeconds % 60 === 0 && Math.random() < 0.20) {
-                            if (spawnPoop(5)) {
-                                pet.hygiene = Math.max(0, pet.hygiene - 10);
-                                pet.poopedThisSleep = true;
+                        // Durante el horario nocturno real (21:00 a 08:00), el desgaste es mínimo pero amanece con hambre e higiene baja
+                        if (isRealNight()) {
+                            if (pet.ageSeconds % 120 === 0) pet.hunger = Math.max(0, pet.hunger - 1);
+                            if (pet.ageSeconds % 150 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
+                            // Hace del baño máximo 1 vez por noche/sueño si le tocó por probabilidad (solo para Bebé y Niño)
+                            if (pet.willPoopThisSleep === undefined) {
+                                pet.willPoopThisSleep = ['BABY', 'CHILD'].includes(pet.stage) && (Math.random() < 0.25);
+                            }
+                            if (pet.willPoopThisSleep && !pet.poopedThisSleep && pet.poopCount < 5 && pet.ageSeconds % 60 === 0 && Math.random() < 0.20) {
+                                if (spawnPoop(5)) {
+                                    pet.hygiene = Math.max(0, pet.hygiene - 10);
+                                    pet.poopedThisSleep = true;
+                                }
                             }
                         }
-                    }
 
-                    // Durante la noche real (9 PM a 8 AM), no se despierta solo aunque la barra llegue al 100%
-                    if (pet.energy >= 100 && !isRealNight()) {
-                        pet.isSleeping = false;
-                        pet.lightsOn = true;
-                        pet.poopedThisSleep = false;
-                        pet.willPoopThisSleep = false;
-                        if (pet.isNightDeprived) {
-                            pet.isSick = true;
-                            pet.sickReason = 'DESVELO EXCESIVO';
-                            pet.isNightDeprived = false;
-                            SFX.bad();
-                            showBanner('¡AMANECIÓ ENFERMO POR DESVELO! 🌙🤒');
-                        } else {
-                            showBanner('¡DESPERTÓ CON ENERGÍA! ☀️');
-                        }
-                    }
-                } else {
-                    // Consecuencias de desvelo variable en horario nocturno real (9:00 PM a 8:00 AM)
-                    if (isRealNight()) {
-                        // Asigna un umbral de tolerancia variable por noche (de 30 min hasta 3 horas desvelado)
-                        if (!pet.nightDepriveThresholdTicks) {
-                            pet.nightDepriveThresholdTicks = Math.floor(1800 + Math.random() * 9000);
-                        }
-                        pet.nightAwakeTicks = (pet.nightAwakeTicks || 0) + 1;
-                        if (pet.nightAwakeTicks >= pet.nightDepriveThresholdTicks) {
-                            pet.isNightDeprived = true;
+                        // Durante la noche real (9 PM a 8 AM), no se despierta solo aunque la barra llegue al 100%
+                        if (pet.energy >= 100 && !isRealNight()) {
+                            pet.isSleeping = false;
+                            pet.lightsOn = true;
+                            pet.poopedThisSleep = false;
+                            pet.willPoopThisSleep = false;
+                            if (pet.isNightDeprived) {
+                                pet.isSick = true;
+                                pet.sickReason = 'DESVELO EXCESIVO';
+                                pet.isNightDeprived = false;
+                                SFX.bad();
+                                showBanner('¡AMANECIÓ ENFERMO POR DESVELO! 🌙🤒');
+                            } else {
+                                showBanner('¡DESPERTÓ CON ENERGÍA! ☀️');
+                            }
                         }
                     } else {
-                        // Al despertar/llegar las 8:00 AM, si acumuló desvelo excesivo en la noche, enferma en ese momento
-                        if (pet.isNightDeprived && !pet.isSick) {
-                            pet.isSick = true;
-                            pet.sickReason = 'DESVELO EXCESIVO';
-                            pet.isNightDeprived = false;
-                            SFX.bad();
-                            showBanner('¡AMANECIÓ ENFERMO POR DESVELO! 🌙🤒');
+                        // Consecuencias de desvelo variable en horario nocturno real (9:00 PM a 8:00 AM)
+                        if (isRealNight()) {
+                            // Asigna un umbral de tolerancia variable por noche (de 30 min hasta 3 horas desvelado)
+                            if (!pet.nightDepriveThresholdTicks) {
+                                pet.nightDepriveThresholdTicks = Math.floor(1800 + Math.random() * 9000);
+                            }
+                            pet.nightAwakeTicks = (pet.nightAwakeTicks || 0) + 1;
+                            if (pet.nightAwakeTicks >= pet.nightDepriveThresholdTicks) {
+                                pet.isNightDeprived = true;
+                            }
+                        } else {
+                            // Al despertar/llegar las 8:00 AM, si acumuló desvelo excesivo en la noche, enferma en ese momento
+                            if (pet.isNightDeprived && !pet.isSick) {
+                                pet.isSick = true;
+                                pet.sickReason = 'DESVELO EXCESIVO';
+                                pet.isNightDeprived = false;
+                                SFX.bad();
+                                showBanner('¡AMANECIÓ ENFERMO POR DESVELO! 🌙🤒');
+                            }
+                            pet.nightAwakeTicks = 0;
+                            pet.nightDepriveThresholdTicks = 0; // Se reinicia para recalcular en la siguiente noche
                         }
-                        pet.nightAwakeTicks = 0;
-                        pet.nightDepriveThresholdTicks = 0; // Se reinicia para recalcular en la siguiente noche
+
+                        if (pet.ageSeconds % 35 === 0) pet.energy = Math.max(0, pet.energy - 1);
+                        if (pet.ageSeconds % 28 === 0) pet.hunger = Math.max(0, pet.hunger - 1);
+                        if (pet.ageSeconds % 16 === 0) pet.thirst = Math.max(0, (pet.thirst !== undefined ? pet.thirst : 15) - 1);
+                        if (pet.ageSeconds % 32 === 0) pet.happiness = Math.max(0, pet.happiness - 1);
+                        if (pet.ageSeconds % 40 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
+
+                        if (pet.energy <= 10 && !pet.isSleeping) {
+                            pet.isSleeping = true;
+                            pet.lightsOn = false;
+                            pet.poopedThisSleep = false;
+                            pet.willPoopThisSleep = ['BABY', 'CHILD'].includes(pet.stage) && (Math.random() < 0.25);
+                            showBanner('TIENE SUEÑO 💤');
+                        }
                     }
 
-                    if (pet.ageSeconds % 35 === 0) pet.energy = Math.max(0, pet.energy - 1);
-                    if (pet.ageSeconds % 28 === 0) pet.hunger = Math.max(0, pet.hunger - 1);
-                    if (pet.ageSeconds % 16 === 0) pet.thirst = Math.max(0, (pet.thirst !== undefined ? pet.thirst : 15) - 1);
-                    if (pet.ageSeconds % 32 === 0) pet.happiness = Math.max(0, pet.happiness - 1);
-                    if (pet.ageSeconds % 40 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
-
-                    if (pet.energy <= 10 && !pet.isSleeping) {
-                        pet.isSleeping = true;
-                        pet.lightsOn = false;
-                        pet.poopedThisSleep = false;
-                        pet.willPoopThisSleep = ['BABY', 'CHILD'].includes(pet.stage) && (Math.random() < 0.25);
-                        showBanner('TIENE SUEÑO 💤');
+                    // Hace del baño en posiciones aleatorias (máximo 5 acumuladas)
+                    if (pet.ageSeconds % 180 === 0 && !pet.isSleeping && pet.poopCount < 5) {
+                        if (spawnPoop(5)) {
+                            pet.hygiene = Math.max(0, pet.hygiene - 14);
+                            pet.hunger = Math.max(0, pet.hunger - 15);
+                            SFX.bad();
+                            showBanner('¡HIZO DEL BAÑO EN EL PISO! 💩');
+                        }
                     }
-                }
 
-                // Hace del baño en posiciones aleatorias (máximo 5 acumuladas)
-                if (pet.ageSeconds % 180 === 0 && !pet.isSleeping && pet.poopCount < 5) {
-                    if (spawnPoop(5)) {
-                        pet.hygiene = Math.max(0, pet.hygiene - 14);
-                        pet.hunger = Math.max(0, pet.hunger - 15);
-                        SFX.bad();
-                        showBanner('¡HIZO DEL BAÑO EN EL PISO! 💩');
+                    // Estar/jugar al aire libre (Parque, Playa, Dulces) da diversión pero ensucia más rápido
+                    if (uiState.location !== 'HOME' && !pet.isSleeping) {
+                        if (pet.ageSeconds % 16 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
+                        if (pet.ageSeconds % 22 === 0) pet.happiness = Math.min(100, pet.happiness + 1);
                     }
-                }
 
-                // Estar/jugar al aire libre (Parque, Playa, Dulces) da diversión pero ensucia más rápido
-                if (uiState.location !== 'HOME' && !pet.isSleeping) {
-                    if (pet.ageSeconds % 16 === 0) pet.hygiene = Math.max(0, pet.hygiene - 1);
-                    if (pet.ageSeconds % 22 === 0) pet.happiness = Math.min(100, pet.happiness + 1);
-                }
-
-                // 1. Repercusión por NO LIMPIAR (acumulación de popós o higiene crítica -> Infección)
-                if (pet.poopCount >= 3 || pet.hygiene <= 15) {
-                    pet.dirtyTicks = (pet.dirtyTicks || 0) + 1;
-                    if (!pet.isSick && pet.dirtyTicks >= 20) {
-                        pet.isSick = true;
-                        pet.sickReason = 'INFECCIÓN POR SUCIEDAD';
-                        SFX.bad();
-                        showBanner('¡ENFERMÓ POR FALTA DE LIMPIEZA! 🦠💉');
+                    // 1. Repercusión por NO LIMPIAR (acumulación de popós o higiene crítica -> Infección)
+                    if (pet.poopCount >= 3 || pet.hygiene <= 15) {
+                        pet.dirtyTicks = (pet.dirtyTicks || 0) + 1;
+                        if (!pet.isSick && pet.dirtyTicks >= 20) {
+                            pet.isSick = true;
+                            pet.sickReason = 'INFECCIÓN POR SUCIEDAD';
+                            SFX.bad();
+                            showBanner('¡ENFERMÓ POR FALTA DE LIMPIEZA! 🦠💉');
+                        }
+                    } else {
+                        pet.dirtyTicks = 0;
                     }
-                } else {
-                    pet.dirtyTicks = 0;
-                }
 
-                // 2. Repercusión por NO COMER (hambre crítica -> Enfermedad por Desnutrición y pérdida de peso)
-                if (pet.hunger <= 12) {
-                    pet.starveTicks = (pet.starveTicks || 0) + 1;
-                    if (!pet.isSick && pet.starveTicks >= 20) {
-                        pet.isSick = true;
-                        pet.sickReason = 'DESNUTRICIÓN';
-                        pet.weight = Math.max(3, pet.weight - 1);
-                        SFX.bad();
-                        showBanner('¡ENFERMÓ POR DESNUTRICIÓN! 🍽️🤒');
+                    // 2. Repercusión por NO COMER (hambre crítica -> Enfermedad por Desnutrición y pérdida de peso)
+                    if (pet.hunger <= 12) {
+                        pet.starveTicks = (pet.starveTicks || 0) + 1;
+                        if (!pet.isSick && pet.starveTicks >= 20) {
+                            pet.isSick = true;
+                            pet.sickReason = 'DESNUTRICIÓN';
+                            pet.weight = Math.max(3, pet.weight - 1);
+                            SFX.bad();
+                            showBanner('¡ENFERMÓ POR DESNUTRICIÓN! 🍽️🤒');
+                        }
+                    } else {
+                        pet.starveTicks = 0;
                     }
-                } else {
-                    pet.starveTicks = 0;
-                }
 
-                // 3. Repercusión por AGOTAMIENTO (energía muy baja sin dormir)
-                if (pet.energy <= 5 && !pet.isSleeping) {
-                    pet.exhaustTicks = (pet.exhaustTicks || 0) + 1;
-                    if (!pet.isSick && pet.exhaustTicks >= 25) {
-                        pet.isSick = true;
-                        pet.sickReason = 'AGOTAMIENTO';
-                        SFX.bad();
-                        showBanner('¡ENFERMÓ POR AGOTAMIENTO! 😵💫');
+                    // 3. Repercusión por AGOTAMIENTO (energía muy baja sin dormir)
+                    if (pet.energy <= 5 && !pet.isSleeping) {
+                        pet.exhaustTicks = (pet.exhaustTicks || 0) + 1;
+                        if (!pet.isSick && pet.exhaustTicks >= 25) {
+                            pet.isSick = true;
+                            pet.sickReason = 'AGOTAMIENTO';
+                            SFX.bad();
+                            showBanner('¡ENFERMÓ POR AGOTAMIENTO! 😵💫');
+                        }
+                    } else {
+                        pet.exhaustTicks = 0;
                     }
-                } else {
-                    pet.exhaustTicks = 0;
-                }
 
-                // Consecuencias activas de estar enfermo: pierde ánimo, energía y se deteriora su temperamento
-                if (pet.isSick && !pet.isSleeping && pet.ageSeconds % 15 === 0) {
-                    pet.happiness = Math.max(0, pet.happiness - 2);
-                    pet.energy = Math.max(5, pet.energy - 1);
-                    updateTemperamentTrait('annoyance', 2);
-                    updateTemperamentTrait('playfulness', -3);
-                    updateTemperamentTrait('affection', -1);
-                }
-
-                // Si pasa muchísimo tiempo sin cuidados y enfermo, parte a una estrella y queda en el historial
-                if ((pet.hunger === 0 || pet.hygiene === 0) && pet.isSick) {
-                    pet.sickTicks = (pet.sickTicks || 0) + 1;
-                    if (pet.sickTicks > 900) {
-                        handlePetPassing(`Se fue a una estrella (${pet.sickReason || 'Falta de cuidados'})`);
-                        return;
+                    // Consecuencias activas de estar enfermo: pierde ánimo, energía y se deteriora su temperamento
+                    if (pet.isSick && !pet.isSleeping && pet.ageSeconds % 15 === 0) {
+                        pet.happiness = Math.max(0, pet.happiness - 2);
+                        pet.energy = Math.max(5, pet.energy - 1);
+                        updateTemperamentTrait('annoyance', 2);
+                        updateTemperamentTrait('playfulness', -3);
+                        updateTemperamentTrait('affection', -1);
                     }
-                } else {
-                    pet.sickTicks = 0;
-                }
 
-                // El cerebro IA va calmando poco a poco la molestia y la saturación de mimos si no lo presionan
-                ensurePetBrain();
-                if (pet.ageSeconds % 20 === 0 && pet.aiBrain.annoyance > 0) {
-                    updateTemperamentTrait('annoyance', -1);
-                }
-                if (pet.ageSeconds % 15 === 0 && pet.aiBrain.pettingSaturation > 0) {
-                    pet.aiBrain.pettingSaturation = Math.max(0, pet.aiBrain.pettingSaturation - 1);
-                }
+                    // Si pasa muchísimo tiempo sin cuidados y enfermo, parte a una estrella y queda en el historial
+                    if ((pet.hunger === 0 || pet.hygiene === 0) && pet.isSick) {
+                        pet.sickTicks = (pet.sickTicks || 0) + 1;
+                        if (pet.sickTicks > 900) {
+                            handlePetPassing(`Se fue a una estrella (${pet.sickReason || 'Falta de cuidados'})`);
+                            return;
+                        }
+                    } else {
+                        pet.sickTicks = 0;
+                    }
 
-                if (pet.ageSeconds % 240 === 0 && !pet.isSleeping && pet.hunger > 40) {
-                    pet.wantsDiscipline = true;
-                    SFX.tap();
+                    // El cerebro IA va calmando poco a poco la molestia y la saturación de mimos si no lo presionan
+                    ensurePetBrain();
+                    if (pet.ageSeconds % 20 === 0 && pet.aiBrain.annoyance > 0) {
+                        updateTemperamentTrait('annoyance', -1);
+                    }
+                    if (pet.ageSeconds % 15 === 0 && pet.aiBrain.pettingSaturation > 0) {
+                        pet.aiBrain.pettingSaturation = Math.max(0, pet.aiBrain.pettingSaturation - 1);
+                    }
+
+                    if (pet.ageSeconds % 240 === 0 && !pet.isSleeping && pet.hunger > 40) {
+                        pet.wantsDiscipline = true;
+                        SFX.tap();
+                    }
                 }
 
                 // Lógica multijugador: actualización de hasta 3 visitas activas simultáneamente
                 if (!Array.isArray(uiState.visitors)) uiState.visitors = [];
 
-                // Generación de visitas sorpresa NPC si hay menos de 3 visitas en pantalla
-                if (uiState.mode === 'IDLE' && !pet.isSleeping && uiState.visitors.length < 3 && pet.ageSeconds % 90 === 0 && Math.random() < 0.45) {
+                // Generación de visitas sorpresa NPC únicamente cuando la mascota NO está de viaje y está presente
+                if (!pet.isOnTrip && uiState.mode === 'IDLE' && !pet.isSleeping && uiState.visitors.length < 3 && pet.ageSeconds % 90 === 0 && Math.random() < 0.45) {
                     const allSp = ['CAT', 'PUPPY', 'BUNNY', 'DINO'].filter(s => s !== pet.species);
                     const chosenSp = allSp[Math.floor(Math.random() * allSp.length)];
                     const npcColors = ['SKY', 'PINK', 'MINT', 'SUNNY', 'LAVENDER'];
@@ -1662,8 +1668,8 @@
                     }
                 }
 
-                // Interacción automática guiada por juguetes o por su Cerebro IA de Temperamento
-                if (uiState.mode === 'IDLE' && !pet.isSleeping && uiState.toyTimer <= 0 && uiState.curiousTimer <= 0 && pet.ageSeconds % 14 === 0) {
+                // Interacción automática guiada por juguetes o por su Cerebro IA de Temperamento (solo si está presente)
+                if (!pet.isOnTrip && uiState.mode === 'IDLE' && !pet.isSleeping && uiState.toyTimer <= 0 && uiState.curiousTimer <= 0 && pet.ageSeconds % 14 === 0) {
                     const targetPlace = (uiState.location === 'HOME') ? 'HOME' : 'PARK';
                     const activeDecorsHere = DECOR_CATALOG.filter(d => d.place === targetPlace && pet.placedDecor && pet.placedDecor.includes(d.id));
                     ensurePetBrain();
@@ -1753,6 +1759,8 @@
                 `);
             } else if (pet.stage === 'EGG') {
                 pills.push(`<div class="px-3 py-1.5 rounded-2xl bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg flex items-center gap-1.5">🥚 Naciendo...</div>`);
+            } else if (pet.isOnTrip) {
+                // Cuando está de viaje, no se muestran píldoras ni botones brillando
             } else if (!pet.isSleeping) {
                 // Solo mostramos píldoras de alerta si la mascota NO está durmiendo
                 if (pet.isSick) {
@@ -1822,6 +1830,10 @@
             if (!pet || !pet.isAlive) return false;
             if (pet.stage === 'EGG') {
                 showBanner('¡ESPERA A QUE NAZCA! 🥚');
+                return false;
+            }
+            if (pet.isOnTrip) {
+                showBanner('¡ESTÁ DE VIAJE! 🧳✈️');
                 return false;
             }
             if (pet.isSleeping) {
@@ -2638,6 +2650,15 @@
         function setPetOnTripState() {
             if (!pet) return;
             pet.isOnTrip = true;
+            // FIX: Congelar todo al irse
+            uiState.activeToy = null;
+            uiState.toyTimer = 0;
+            uiState.curiousTimer = 0;
+            uiState.curiousAnim = null;
+            uiState.floatingHearts = [];
+            uiState.visitors = [];
+            uiState.targetX = 120;
+            uiState.targetY = 165;
             renderMyPassportQR();
             showBanner('🧳 ¡TU MASCOTA SALIÓ DE VISITA! EN CASA SE MUESTRA SU MALETA');
             saveGame();
@@ -2744,7 +2765,7 @@
                 showBanner(`✨ ¡${newVisitor.name.toUpperCase()} LLEGÓ DE VISITA POR QR! 🎉`);
                 unlockCareBadge('FRIENDLY', 'BUEN AMIGO');
                 updateVisitorsListUI();
-                switchQRTab('VISITORS_LIST');
+                closeQRModal();
                 saveGame();
             } catch(e) {
                 SFX.bad();
@@ -2801,6 +2822,9 @@
             list.splice(index, 1);
             updateVisitorsListUI();
 
+            const returnBox = document.getElementById('returnQrContainer');
+            if (returnBox) returnBox.classList.remove('hidden');
+
             const graphicContainer = document.getElementById('returnQrGraphic');
             if (graphicContainer) {
                 graphicContainer.innerHTML = '';
@@ -2816,8 +2840,6 @@
                 } catch(e){}
             }
 
-            const returnBox = document.getElementById('returnQrContainer');
-            if (returnBox) returnBox.classList.remove('hidden');
             SFX.happy();
             showBanner(`🎟️ ¡${v.name.toUpperCase()} SE DESPIDIÓ! QR DE REGRESO GENERADO`);
             saveGame();
@@ -3068,7 +3090,7 @@
 
         // Toque directo en el lienzo: permite tocar juguetes puestos (como la radio o la pelota) o mimar a la mascota
         canvas.addEventListener('pointerdown', (e) => {
-            if (!pet || !pet.isAlive || pet.stage === 'EGG' || uiState.mode !== 'IDLE') return;
+            if (!pet || !pet.isAlive || pet.stage === 'EGG' || uiState.mode !== 'IDLE' || pet.isOnTrip) return;
             const rect = canvas.getBoundingClientRect();
             const clickX = ((e.clientX - rect.left) / rect.width) * canvas.width;
             const clickY = ((e.clientY - rect.top) / rect.height) * canvas.height;
@@ -4073,8 +4095,11 @@
                     return;
                 }
 
-                // Si hay visitantes activos en la lista, nuestra mascota reacciona: camina hacia ellos y los mira emocionada
-                if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
+                // FIX: CONGELADO SI ESTÁ DE VIAJE - no se mueve ni juega solo
+                if (pet.isOnTrip) {
+                    uiState.activeToy = null;
+                    uiState.toyTimer = 0;
+                } else if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
                     uiState.activeToy = null;
                     uiState.toyTimer = 0;
                     const visitorTargetX = 118;
@@ -4190,10 +4215,10 @@
                     }
                 } else if (uiState.curiousTimer > 0 && uiState.curiousAnim) {
                     if (uiState.curiousAnim === 'PEEK_SCREEN') {
-                        // Se acerca enorme a la pantalla a saludar con curiosidad
-                        sc = sc * 1.45;
-                        drawX = Math.floor(120 - (6 * sc));
-                        toyJump = -14;
+                        // Saludo curioso con tamaño bien proporcionado sobre el piso
+                        sc = Math.min(6, sc + 1);
+                        drawX = Math.floor(uiState.petX || 95);
+                        toyJump = 8;
                         animIdx = Math.floor(uiState.frame / 10) % 2;
                     } else if (uiState.curiousAnim === 'SPIN_JUMP') {
                         // Pirueta alegre en el aire
@@ -4255,91 +4280,93 @@
                     drawSprite(frames[animIdx], drawX, drawY, sc, flipPet);
                 }
 
-                // Reacción interactiva cuando hay un amigo de visita (globos de plática, notas y corazones entre ambos)
-                if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
-                    ctx.save();
-                    ctx.fillStyle = '#ffffff';
-                    ctx.textAlign = 'center';
-                    const chatPhase = Math.floor(uiState.frame / 24) % 3;
-                    if (chatPhase === 0) {
-                        ctx.font = '13px sans-serif';
-                        ctx.fillText('💬', drawX + 26, drawY - 4);
-                        drawSprite(SPRITES.HEART, 152, 98 - (uiState.frame % 10), 1.8);
-                    } else if (chatPhase === 1) {
-                        ctx.font = '13px sans-serif';
-                        ctx.fillText('🎶', 168, 96);
-                        ctx.fillText('😄', drawX + 12, drawY - 6);
-                    } else {
-                        drawSprite(SPRITES.HEART, drawX + 18, drawY - 12, 2);
-                        drawSprite(SPRITES.HEART, 174, 94, 2);
-                    }
-                    ctx.restore();
-                }
-
-                // Dibujar sombrerito o accesorio equipado sobre la cabecita de la mascota
-                if (pet.equippedHat && pet.stage !== 'EGG') {
-                    const hatObj = HAT_CATALOG.find(h => h.id === pet.equippedHat);
-                    if (hatObj) {
+                if (!pet.isOnTrip) {
+                    // Reacción interactiva cuando hay un amigo de visita (globos de plática, notas y corazones entre ambos)
+                    if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
                         ctx.save();
                         ctx.fillStyle = '#ffffff';
-                        ctx.globalAlpha = 1.0;
-                        ctx.font = `${Math.round(sc * 4.5)}px sans-serif`;
                         ctx.textAlign = 'center';
-                        const hatBounce = (animIdx === 1) ? 3 : 0;
-                        ctx.fillText(hatObj.icon, drawX + (6 * sc), drawY + hatBounce);
-                        ctx.restore();
-                    }
-                }
-
-                // Efectos visuales de las animaciones curiosas espontáneas
-                if (uiState.curiousTimer > 0 && uiState.curiousAnim) {
-                    ctx.save();
-                    ctx.fillStyle = '#ffffff';
-                    ctx.textAlign = 'center';
-                    if (uiState.curiousAnim === 'PEEK_SCREEN') {
-                        ctx.font = '16px sans-serif';
-                        ctx.fillText('👋', drawX + (11 * sc), drawY + 12);
-                        ctx.fillText('✨', drawX - 6, drawY + 8);
-                    } else if (uiState.curiousAnim === 'SING') {
-                        ctx.font = '14px sans-serif';
-                        ctx.fillText('🎵', drawX + 22, drawY - 6 - (uiState.frame % 12));
-                        ctx.fillText('🎶', drawX - 4, drawY - 2 - ((uiState.frame + 6) % 12));
-                    } else if (uiState.curiousAnim === 'SPIN_JUMP') {
-                        ctx.font = '14px sans-serif';
-                        ctx.fillText('🌟', drawX + 18, drawY - 8);
-                    } else if (uiState.curiousAnim === 'STRETCH') {
-                        ctx.font = '13px sans-serif';
-                        ctx.fillText('💭', drawX + 24, drawY - 6);
-                    } else if (uiState.curiousAnim === 'REFUSE') {
-                        ctx.font = '15px sans-serif';
-                        ctx.fillText('💢', drawX + 24, drawY - 6);
-                        ctx.fillText('😤', drawX - 6, drawY + 2);
-                    } else if (uiState.curiousAnim === 'SAD_DROP') {
-                        ctx.font = '14px sans-serif';
-                        ctx.fillText('😢', drawX - 6, drawY + 2);
-                        ctx.fillText('💧', drawX + 24, drawY - 4 + (uiState.frame % 10));
-                    }
-                    ctx.restore();
-                } else if (!pet.isSleeping && uiState.mode === 'IDLE' && pet.stage !== 'EGG') {
-                    // Si es de noche real (21:00 a 08:00) y está despierto, muestra "z Z z" flotante indicando sueño natural
-                    if (isRealNight()) {
-                        ctx.save();
-                        ctx.fillStyle = '#c084fc';
-                        ctx.font = '10px "Press Start 2P", monospace';
-                        ctx.textAlign = 'center';
-                        const zFloat = (Math.floor(uiState.frame / 18) % 3) * 3;
-                        ctx.fillText('z Z z', drawX + (6 * sc), drawY - 14 - zFloat);
+                        const chatPhase = Math.floor(uiState.frame / 24) % 3;
+                        if (chatPhase === 0) {
+                            ctx.font = '13px sans-serif';
+                            ctx.fillText('💬', drawX + 26, drawY - 4);
+                            drawSprite(SPRITES.HEART, 152, 98 - (uiState.frame % 10), 1.8);
+                        } else if (chatPhase === 1) {
+                            ctx.font = '13px sans-serif';
+                            ctx.fillText('🎶', 168, 96);
+                            ctx.fillText('😄', drawX + 12, drawY - 6);
+                        } else {
+                            drawSprite(SPRITES.HEART, drawX + 18, drawY - 12, 2);
+                            drawSprite(SPRITES.HEART, 174, 94, 2);
+                        }
                         ctx.restore();
                     }
 
-                    // Mostrar burbujita de estado emocional si está Molesto, Triste o Gruñón
-                    const currTemp = getPetTemperamentInfo();
-                    if (['ANGRY', 'SAD', 'GRUMPY'].includes(currTemp.id)) {
+                    // Dibujar sombrerito o accesorio equipado sobre la cabecita de la mascota
+                    if (pet.equippedHat && pet.stage !== 'EGG') {
+                        const hatObj = HAT_CATALOG.find(h => h.id === pet.equippedHat);
+                        if (hatObj) {
+                            ctx.save();
+                            ctx.fillStyle = '#ffffff';
+                            ctx.globalAlpha = 1.0;
+                            ctx.font = `${Math.round(sc * 4.5)}px sans-serif`;
+                            ctx.textAlign = 'center';
+                            const hatBounce = (animIdx === 1) ? 3 : 0;
+                            ctx.fillText(hatObj.icon, drawX + (6 * sc), drawY + hatBounce);
+                            ctx.restore();
+                        }
+                    }
+
+                    // Efectos visuales de las animaciones curiosas espontáneas
+                    if (uiState.curiousTimer > 0 && uiState.curiousAnim) {
                         ctx.save();
-                        ctx.font = '13px sans-serif';
+                        ctx.fillStyle = '#ffffff';
                         ctx.textAlign = 'center';
-                        ctx.fillText(currTemp.emoji, drawX + 26, drawY - 4 + Math.sin(uiState.frame * 0.1) * 2);
+                        if (uiState.curiousAnim === 'PEEK_SCREEN') {
+                            ctx.font = '16px sans-serif';
+                            ctx.fillText('👋', drawX + (11 * sc), drawY + 12);
+                            ctx.fillText('✨', drawX - 6, drawY + 8);
+                        } else if (uiState.curiousAnim === 'SING') {
+                            ctx.font = '14px sans-serif';
+                            ctx.fillText('🎵', drawX + 22, drawY - 6 - (uiState.frame % 12));
+                            ctx.fillText('🎶', drawX - 4, drawY - 2 - ((uiState.frame + 6) % 12));
+                        } else if (uiState.curiousAnim === 'SPIN_JUMP') {
+                            ctx.font = '14px sans-serif';
+                            ctx.fillText('🌟', drawX + 18, drawY - 8);
+                        } else if (uiState.curiousAnim === 'STRETCH') {
+                            ctx.font = '13px sans-serif';
+                            ctx.fillText('💭', drawX + 24, drawY - 6);
+                        } else if (uiState.curiousAnim === 'REFUSE') {
+                            ctx.font = '15px sans-serif';
+                            ctx.fillText('💢', drawX + 24, drawY - 6);
+                            ctx.fillText('😤', drawX - 6, drawY + 2);
+                        } else if (uiState.curiousAnim === 'SAD_DROP') {
+                            ctx.font = '14px sans-serif';
+                            ctx.fillText('😢', drawX - 6, drawY + 2);
+                            ctx.fillText('💧', drawX + 24, drawY - 4 + (uiState.frame % 10));
+                        }
                         ctx.restore();
+                    } else if (!pet.isSleeping && uiState.mode === 'IDLE' && pet.stage !== 'EGG' && !pet.isOnTrip) {
+                        // Si es de noche real (21:00 a 08:00) y está despierto, muestra "z Z z" flotante indicando sueño natural
+                        if (isRealNight()) {
+                            ctx.save();
+                            ctx.fillStyle = '#c084fc';
+                            ctx.font = '10px "Press Start 2P", monospace';
+                            ctx.textAlign = 'center';
+                            const zFloat = (Math.floor(uiState.frame / 18) % 3) * 3;
+                            ctx.fillText('z Z z', drawX + (6 * sc), drawY - 14 - zFloat);
+                            ctx.restore();
+                        }
+
+                        // Mostrar burbujita de estado emocional si está Molesto, Triste o Gruñón - NO si está de viaje
+                        const currTemp = getPetTemperamentInfo();
+                        if (!pet.isOnTrip && ['ANGRY', 'SAD', 'GRUMPY'].includes(currTemp.id)) {
+                            ctx.save();
+                            ctx.font = '13px sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(currTemp.emoji, drawX + 26, drawY - 4 + Math.sin(uiState.frame * 0.1) * 2);
+                            ctx.restore();
+                        }
                     }
                 }
 
@@ -4356,8 +4383,8 @@
                     if (uiState.sceneOverride === 'SCHOOL') drawSchoolDeskOverlay();
                 }
 
-                // Indicador visual sobre la mascota cuando está enferma o desnutrida
-                if (pet.isSick && !pet.isSleeping) {
+                // Indicador visual sobre la mascota cuando está enferma - NO mostrar si está de viaje
+                if (pet.isSick && !pet.isSleeping && !pet.isOnTrip) {
                     ctx.save();
                     ctx.font = '14px sans-serif';
                     ctx.textAlign = 'center';
