@@ -3946,13 +3946,14 @@
             });
 
             // Dibujar cada visita chiquita (escala 2.2) en el piso
-            list.forEach((v, idx) => {
+            list.forEach(v => {
                 const frames = SPRITES[v.species] || SPRITES.CAT;
                 const col = PET_PALETTES[v.color] ? v.color : 'PINK';
                 const step = uiState.frame % 30 < 15 ? 0 : 1;
                 const vx = Math.floor(v.x);
-                const visitorScale = 2.2;
-                const vy = 165 - (12 * visitorScale);
+                const visitorScale = v.isQR ? 1.6 : 2.2;
+                const spriteCenterX = vx + (frames[step][0].length * visitorScale) / 2;
+                const vy = 165 - (frames[step].length * visitorScale);
                 ctx.save();
                 drawSpriteWithPalette(frames[step], vx, vy, visitorScale, v.dir < 0, col);
                 ctx.restore();
@@ -3963,7 +3964,7 @@
                         ctx.save();
                         ctx.font = '12px sans-serif';
                         ctx.textAlign = 'center';
-                        ctx.fillText(h.icon, vx + 13, vy);
+                        ctx.fillText(h.icon, spriteCenterX, vy);
                         ctx.restore();
                     }
                 }
@@ -3971,7 +3972,7 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '800 8px "Nunito", sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(v.name, vx + 13, vy - 6);
+                ctx.fillText(v.name, spriteCenterX, vy - 6);
                 ctx.restore();
             });
         }
