@@ -2682,12 +2682,20 @@
             try {
                 const html5QrCode = new Html5Qrcode("qrReaderContainer");
                 activeQrScanner = html5QrCode;
+                let alreadyScanned = false;
                 html5QrCode.start(
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 170, height: 170 } },
                     (decodedText) => {
-                        stopQRScanner();
-                        processScannedQRData(decodedText);
+                        if (alreadyScanned) return;
+                        alreadyScanned = true;
+                        try { html5QrCode.stop().catch(()=>{}); } catch(e){}
+                        try { html5QrCode.clear(); } catch(e){}
+                        activeQrScanner = null;
+                        if (container) container.innerHTML = '<div class="p-3 text-emerald-300 text-center font-bold">✅ ¡QR detectado!</div>';
+                        setTimeout(() => {
+                            processScannedQRData(decodedText);
+                        }, 80);
                     },
                     () => {}
                 ).catch(err => {
@@ -2699,8 +2707,14 @@
         }
 
         function stopQRScanner() {
+            const container = document.getElementById('qrReaderContainer');
             if (activeQrScanner) {
-                activeQrScanner.stop().catch(()=>{}).finally(()=>{ activeQrScanner = null; });
+                try { activeQrScanner.stop().catch(()=>{}); } catch(e){}
+                try { activeQrScanner.clear(); } catch(e){}
+                activeQrScanner = null;
+            }
+            if (container) {
+                container.innerHTML = '<div class="p-3 text-emerald-300 text-center text- font-bold">✅ Cámara detenida<br><span class="text-slate-400 font-normal">Visita registrada</span></div>';
             }
         }
 
@@ -2715,6 +2729,7 @@
             if (!rawStr || (!rawStr.startsWith('TAMA_V1:') && !rawStr.startsWith('TAMA_RET1:'))) {
                 SFX.bad();
                 showBanner('❌ CÓDIGO QR NO VÁLIDO DE TAMAGOTCHI');
+                closeQRModal();
                 return;
             }
 
@@ -2739,6 +2754,7 @@
                 if (uiState.visitors.length >= 3) {
                     SFX.bad();
                     showBanner('⚠️ ¡YA HAY 3 VISITAS EN CASA! DESPIDE A UNA PRIMERO');
+                    closeQRModal();
                     return;
                 }
 
@@ -3902,6 +3918,16 @@
             const inSpecialRoom = pet.isSleeping || (uiState.mode === 'ANIMATING' && ['KITCHEN', 'BATHROOM', 'HOSPITAL', 'SCHOOL'].includes(uiState.sceneOverride));
             if (inSpecialRoom) return;
 
+            // FIX: Validación y clamp para evitar visitante gigante volando
+            list.forEach(v => {
+                if (typeof v.x !== 'number' || isNaN(v.x) || v.x < 20 || v.x > 220) v.x = 80 + Math.random()*60;
+                if (typeof v.y !== 'number' || isNaN(v.y) || v.y < 130 || v.y > 190) v.y = 160;
+                if (typeof v.targetX !== 'number' || isNaN(v.targetX)) v.targetX = 80 + Math.random()*60;
+                if (typeof v.targetY !== 'number' || isNaN(v.targetY) || v.targetY < 130 || v.targetY > 185) v.targetY = 160;
+                if (!SPRITES[v.species]) v.species = 'CAT';
+                if (!PET_PALETTES[v.color]) v.color = 'PINK';
+            });
+
             // 1. Movimiento autónomo e interactivo de cada visita
             list.forEach(v => {
                 if (v.pauseTimer > 0) {
@@ -3943,19 +3969,25 @@
                 }
             }
 
-            // 3. Dibujar sprites de las visitas
+            // 3. Dibujar sprites de las visitas - FIX altura gigante
             list.forEach((v, idx) => {
-                const vFrames = SPRITES[v.species] || SPRITES.BUNNY;
+                const vFrames = (SPRITES[v.species] && SPRITES[v.species][0]) ? SPRITES[v.species] : SPRITES.CAT;
+                const colorKey = PET_PALETTES[v.color] ? v.color : 'PINK';
                 let vStep = Math.floor((uiState.frame + idx * 8) / 18) % 2;
+                if (vStep >= vFrames.length) vStep = 0;
                 let vJump = 0;
 
                 if (pairedInteraction) {
                     vJump = Math.abs(Math.sin((uiState.frame + idx * 6) * 0.24)) * 9;
                     vStep = Math.floor(uiState.frame / 7) % 2;
+                    if (vStep >= vFrames.length) vStep = 0;
                 }
 
-                const vy = (v.y || 165) - 34 - vJump;
-                drawSpriteWithPalette(vFrames[vStep], v.x, vy, 3, v.dir < 0, v.color);
+                const vy = Math.max(110, Math.min(170, Math.floor((v.y || 165) - 34 - vJump)));
+                const vx = Math.max(20, Math.min(200, Math.floor(v.x || 80)));
+                ctx.save();
+                drawSpriteWithPalette(vFrames[vStep], vx, vy, 3, v.dir < 0, colorKey);
+                ctx.restore();
 
                 // Dibujar sombrerito centrado sobre la cabeza de la mascota (ancho = 36px, centro = v.x + 18)
                 if (v.hat) {
