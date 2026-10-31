@@ -796,9 +796,9 @@
         }
 
         /**************************************************************
-         * 3. SPRITES PIXEL-ART A COLOR (12x12)
+         * 3. SPRITES PIXEL-ART A COLOR CON ETAPA BEBÉ, COLAS Y GESTOS
          **************************************************************/
-        // Leyenda: .=transparente, D=borde oscuro, B=cuerpo, L=brillo/pancita, K=ojos negros, C=mejillas, W=blanco
+        // Leyenda: .=transparente, D=borde oscuro, B=cuerpo, L=pancita/brillo, K=ojos, M=boca/gesto, C=mejillas, W=blanco, P=rosita(oreja/lengua), S=mancha/cresta, N=hocico/nariz, T=popó
         const SPRITES = {
             EGG: [
                 [
@@ -807,8 +807,8 @@
                     ".DBBLLLLBBD.",
                     ".DBLLLLLLBD.",
                     "DBBBBBBBBBBD",
-                    "DBBLLBBLLBBD",
-                    "DBBLLBBLLBBD",
+                    "DBBSSBBSBBBD",
+                    "DBBSSBBSBBBD",
                     "DBBBBBBBBBBD",
                     ".DBBBBBBBBD.",
                     ".DDBBBBBBDD.",
@@ -822,39 +822,161 @@
                     ".DBBLLLLBBD.",
                     ".DBLLLLLLBD.",
                     "DBBBBBBBBBBD",
-                    "DBBLLBBLLBBD",
-                    "DBBLLBBLLBBD",
+                    "DBBSSBBSBBBD",
+                    "DBBSSBBSBBBD",
                     "DBBBBBBBBBBD",
                     ".DDBBBBBBDD.",
                     "..DDDDDDDD..",
                     "............"
                 ]
             ],
-            CAT: [
+            // ETAPA BEBÉ (Chibi redonditos y tiernos para cada especie)
+            BABY_CAT: [
                 [
+                    "............",
+                    "............",
                     ".DD......DD.",
-                    "DBBD....DBBD",
-                    "DBBDDDDDDBBD",
+                    "DPPDddddDPPD",
                     "DBBBBBBBBBBD",
                     "DBKBBBBBBKBD",
-                    "DBCBBWWBBCBD",
-                    "DBBLLLLLLBBD",
-                    ".DBLLLLLLBD.",
-                    ".DBBBBBBBBD.",
-                    "..DDBBBBDD..",
-                    "..DD....DD..",
+                    "DBCBBMMBBCBD",
+                    ".DBLLLLLLBDd",
+                    ".DDBBBBBBDDd",
+                    "...DD..DD...",
+                    "............",
                     "............"
                 ],
                 [
                     "............",
                     ".DD......DD.",
-                    "DBBD....DBBD",
-                    "DBBDDDDDDBBD",
+                    "DPPDddddDPPD",
                     "DBBBBBBBBBBD",
                     "DBKBBBBBBKBD",
-                    "DBCBBWWBBCBD",
-                    "DBBLLLLLLBBD",
+                    "DBCBBMMBBCBD",
                     ".DBLLLLLLBD.",
+                    ".DDBBBBBBDDd",
+                    "..DD....DD..",
+                    "............",
+                    "............",
+                    "............"
+                ]
+            ],
+            BABY_PUPPY: [
+                [
+                    "............",
+                    "............",
+                    "..DDDDDDDD..",
+                    ".DDBBBBBBDD.",
+                    "DDKBBBBBBKDD",
+                    "DDCBWMMWBCdd",
+                    ".DBLLLLLLBD.",
+                    ".DDBBBBBBDDd",
+                    "...DD..DD...",
+                    "............",
+                    "............",
+                    "............"
+                ],
+                [
+                    "............",
+                    "..DDDDDDDD..",
+                    ".DDBBBBBBDD.",
+                    "DDKBBBBBBKDD",
+                    "DDCBWMMWBCdd",
+                    ".DBLLLLLLBDd",
+                    ".DDBBBBBBDD.",
+                    "..DD....DD..",
+                    "............",
+                    "............",
+                    "............",
+                    "............"
+                ]
+            ],
+            BABY_BUNNY: [
+                [
+                    "..DD....DD..",
+                    ".DPPD..DPPD.",
+                    "..DDBBBBDD..",
+                    ".DBBBBBBBBD.",
+                    ".DBKBBBBKBD.",
+                    ".DCBBMMBBCD.",
+                    ".DBLLLLLLBDW",
+                    "..DDBBBBDDWW",
+                    "...DD..DD...",
+                    "............",
+                    "............",
+                    "............"
+                ],
+                [
+                    "............",
+                    "..DD....DD..",
+                    ".DPPD..DPPD.",
+                    "..DDBBBBDD..",
+                    ".DBBBBBBBBD.",
+                    ".DBKBBBBKBD.",
+                    ".DCBBMMBBCDW",
+                    "..DBLLLLBDWW",
+                    "..DD....DD..",
+                    "............",
+                    "............",
+                    "............"
+                ]
+            ],
+            BABY_DINO: [
+                [
+                    "............",
+                    "....SSSS....",
+                    "..DDBBBBDD..",
+                    ".DBBBBBBBBD.",
+                    ".DBKBBBBKBD.",
+                    ".DBCBMWMBCBD",
+                    ".DBLLLLLLBDS",
+                    "..DDBBBBDDbd",
+                    "...DD..DD...",
+                    "............",
+                    "............",
+                    "............"
+                ],
+                [
+                    "....SSSS....",
+                    "..DDBBBBDD..",
+                    ".DBBBBBBBBD.",
+                    ".DBKBBBBKBD.",
+                    ".DBCBMWMBCBD",
+                    ".DBLLLLLLBD.",
+                    "..DDBBBBDDbd",
+                    "..DD....DD..",
+                    "............",
+                    "............",
+                    "............",
+                    "............"
+                ]
+            ],
+            // ETAPAS CRECIDAS (NIÑO, JOVEN Y ADULTO CON SILUETA MUY DEFINIDA)
+            CAT: [
+                [
+                    "DD.......DD.",
+                    "DPD.....DPD.",
+                    "DBBDDDDDBBD.",
+                    "DBBBSBSBBBD.",
+                    "DBKBBBBBKBD.",
+                    "DCBWMMMWBCD.",
+                    ".DBLLLLLLBDd",
+                    ".DBLLLLLLBDb",
+                    ".DBBBBBBBBDb",
+                    "..DDBBBBDDd.",
+                    "..DD....DD..",
+                    "............"
+                ],
+                [
+                    "............",
+                    "DD.......DD.",
+                    "DPD.....DPD.",
+                    "DBBDDDDDBBD.",
+                    "DBBBSBSBBBD.",
+                    "DBKBBBBBKBDd",
+                    "DCBWMMMWBCDb",
+                    ".DBLLLLLLBDb",
+                    ".DBBBBBBBBDd",
                     "..DDBBBBDD..",
                     "...DD..DD...",
                     "............"
@@ -864,87 +986,87 @@
                 [
                     "..DDDDDDDD..",
                     ".DDBBBBBBDD.",
-                    "DDBBBBBBBBDD",
+                    "DDDBBBBBSDDD",
                     "DDKBBBBBBKDD",
-                    "DBCBBKKBBCBD",
-                    ".DBLLLLLLBD.",
-                    ".DBLLLLLLBD.",
+                    "DDBWWNNWWBDD",
+                    ".DCBWMMWBCDd",
+                    ".DBLLLLLLBDb",
+                    ".DBLLLLLLBDd",
                     ".DBBBBBBBBD.",
                     "..DDBBBBDD..",
                     "..DD....DD..",
-                    "............",
                     "............"
                 ],
                 [
                     "............",
                     "..DDDDDDDD..",
                     ".DDBBBBBBDD.",
-                    "DDBBBBBBBBDD",
+                    "DDDBBBBBSDDD",
                     "DDKBBBBBBKDD",
-                    "DBCBBKKBBCBD",
+                    "DDBWWNNWWBDd",
+                    ".DCBWMMWBCDb",
                     ".DBLLLLLLBD.",
-                    ".DBLLLLLLBD.",
+                    ".DBBBBBBBBD.",
                     "..DDBBBBDD..",
                     "...DD..DD...",
-                    "............",
                     "............"
                 ]
             ],
             BUNNY: [
                 [
-                    "..DD....DD..",
-                    ".DBBD..DBBD.",
-                    ".DBBD..DBBD.",
-                    "..DDBBBBDD..",
+                    ".DD.....DD..",
+                    "DPPD...DPPD.",
+                    "DBBD...DBBD.",
+                    ".DDBBBBBDD..",
                     ".DBBBBBBBBD.",
                     "DBKBBBBBBKBD",
-                    "DBCBBWWBBCBD",
-                    "DBBLLLLLLBBD",
-                    ".DBLLLLLLBD.",
-                    "..DDBBBBDD..",
+                    "DCBBWMMWBBCD",
+                    "DBBLLLLLLBD.",
+                    ".DBLLLLLLBDW",
+                    ".DDBBBBBBDDW",
                     "..DD....DD..",
                     "............"
                 ],
                 [
                     "............",
-                    "..DD....DD..",
-                    ".DBBD..DBBD.",
-                    "..DDBBBBDD..",
+                    ".DD......DD.",
+                    "DPPD....DPPD",
+                    "DBBD...DBBD.",
+                    ".DDBBBBBDD..",
                     ".DBBBBBBBBD.",
                     "DBKBBBBBBKBD",
-                    "DBCBBWWBBCBD",
-                    "DBBLLLLLLBBD",
-                    ".DBLLLLLLBD.",
-                    "..DDBBBBDD..",
+                    "DCBBWMMWBBCD",
+                    ".DBLLLLLLBDW",
+                    ".DDBBBBBBDDW",
                     "...DD..DD...",
                     "............"
                 ]
             ],
             DINO: [
                 [
-                    "...DDDDDD...",
-                    "..DBBBBBBD..",
-                    ".DBBBBBBBBD.",
+                    "..SDSDSD....",
+                    ".DDBBBBBDD..",
+                    "SDBBBBBBBBD.",
                     ".DBKBBBBKBD.",
-                    ".DBCBBBBcbd.",
-                    ".DBLLLLLLBD.",
-                    "DDBLLLLLLBDD",
-                    "DBBLLLLLLBBD",
-                    ".DBBBBBBBBD.",
-                    "..DDBBBBDD..",
+                    "SDBCBMMWBBBD",
+                    ".DBLLLLLLDD.",
+                    "SDBLLLLLLBD.",
+                    ".DBLLLLLLBDD",
+                    ".DBBBBBBBBBd",
+                    "..DDBBBBDDdd",
                     "..DD....DD..",
                     "............"
                 ],
                 [
                     "............",
-                    "...DDDDDD...",
-                    "..DBBBBBBD..",
-                    ".DBBBBBBBBD.",
+                    "..SDSDSD....",
+                    ".DDBBBBBDD..",
+                    "SDBBBBBBBBD.",
                     ".DBKBBBBKBD.",
-                    ".DBCBBBBcbd.",
-                    "DDBLLLLLLBDD",
-                    "DBBLLLLLLBBD",
-                    ".DBBBBBBBBD.",
+                    "SDBCBMMWBBBD",
+                    ".DBLLLLLLDD.",
+                    "SDBLLLLLLBDD",
+                    ".DBBBBBBBBBd",
                     "..DDBBBBDD..",
                     "...DD..DD...",
                     "............"
@@ -961,12 +1083,12 @@
                 "....RR...."
             ],
             POOP: [
-                "....PP....",
-                "...PPPP...",
-                "..PPPPPP..",
-                ".PPPPPPPP.",
-                "PPPPPPPPPP",
-                ".PPPPPPPP."
+                "....TT....",
+                "...TTTT...",
+                "..TTTTTT..",
+                ".TTTTTTTT.",
+                "TTTTTTTTTT",
+                ".TTTTTTTT."
             ]
         };
 
@@ -1440,6 +1562,13 @@
             }
             pet.ageSeconds = targetAge;
             const addedPoops = advanceCareTimers(previousAge, targetAge, true);
+            if (pet.isSleeping && pet.energy >= 100 && !isRealNight() && !isConvalescing()) {
+                pet.isSleeping = false;
+                pet.lightsOn = true;
+                pet.poopedThisSleep = false;
+                pet.willPoopThisSleep = false;
+                resetCareTimersForStateChange();
+            }
             checkEvolution();
             const mins = Math.floor(seconds / 60);
 
@@ -1991,7 +2120,16 @@
             uiState.toyTimer = 0;
         }
 
+        function cancelActiveMiniGame() {
+            if (uiState.mode === 'MINIGAME') {
+                uiState.mode = 'IDLE';
+                miniGame.items = [];
+                document.getElementById('minigameControls').classList.add('hidden');
+            }
+        }
+
         function closeDrawer() {
+            cancelActiveMiniGame();
             document.getElementById('subMenuDrawer').classList.add('hidden');
         }
 
@@ -2225,10 +2363,6 @@
             if (!pet || pet.stage === 'EGG') return;
             ensurePetBrain();
             closeDrawer();
-            if (pet.isSleeping && isConvalescing()) {
-                showBanner('DEBE DORMIR HASTA TERMINAR SU REPOSO 🩹💤');
-                return;
-            }
             if (!pet.isSleeping && pet.energy >= 92 && !isConvalescing() && getDeviceDayPhase().id !== 'NIGHT') {
                 SFX.bad();
                 updateTemperamentTrait('annoyance', 12);
@@ -2259,6 +2393,10 @@
             } else {
                 pet.poopedThisSleep = false;
                 pet.willPoopThisSleep = false;
+                pet.convalesceUntil = 0;
+                if (pet.energy <= 15) {
+                    pet.energy = 25;
+                }
             }
             uiState.sceneOverride = null;
             SFX.select();
@@ -2430,6 +2568,7 @@
         // 3. MINIJUEGOS Y ACTIVIDADES ESTILO TAMAGOTCHI PIX / UNI
         function openGamesDrawer() {
             if (!canInteract()) return;
+            cancelActiveMiniGame();
             if (pet.isSick || isConvalescing()) {
                 SFX.bad();
                 uiState.curiousAnim = 'REFUSE';
@@ -2508,6 +2647,7 @@
         // Minijuego Tamagotchi Uni: Encontrar parejas de cartas (Memoria)
         function openMemoryMiniGame() {
             if (!canInteract()) return;
+            cancelActiveMiniGame();
             SFX.select();
             const icons = ['🍓', '🍓', '⭐', '⭐', '🍔', '🍔', '🎈', '🎈'];
             miniGame.cards = icons.sort(() => Math.random() - 0.5).map((icon, idx) => ({
@@ -3280,7 +3420,30 @@
 
         function getCurrentPetFrames() {
             if (!pet || pet.stage === 'EGG') return SPRITES.EGG;
+            if (pet.stage === 'BABY') {
+                return SPRITES['BABY_' + pet.species] || SPRITES.BABY_CAT;
+            }
             return SPRITES[pet.species] || SPRITES.CAT;
+        }
+
+        function getPetFacialExpression() {
+            if (!pet || pet.stage === 'EGG') return 'NORMAL';
+            if (pet.isSleeping) return 'SLEEP';
+            if (uiState.mode === 'ANIMATING' && uiState.sceneOverride === 'KITCHEN') {
+                return (uiState.frame % 16 < 8) ? 'EATING_OPEN' : 'HAPPY';
+            }
+            if (uiState.curiousTimer > 0) {
+                if (uiState.curiousAnim === 'REFUSE') return 'ANGRY';
+                if (uiState.curiousAnim === 'SAD_DROP') return 'SAD';
+                if (uiState.curiousAnim === 'SING') return (uiState.frame % 18 < 9) ? 'EATING_OPEN' : 'HAPPY';
+                if (uiState.curiousAnim === 'SPIN_JUMP' || uiState.curiousAnim === 'PEEK_SCREEN') return 'HAPPY';
+            }
+            if (uiState.toyTimer > 0) return 'HAPPY';
+            if (pet.isSick || pet.hunger < 25 || pet.happiness < 30) return 'SAD';
+            if (pet.aiBrain && pet.aiBrain.annoyance >= 60) return 'ANGRY';
+            if (uiState.frame % 110 >= 104) return 'BLINK';
+            if (pet.happiness >= 85 && (uiState.frame % 180 < 35)) return 'HAPPY';
+            return 'NORMAL';
         }
 
         // Dibuja la comida en pixel-art en su etapa de mordida actual (0=entera, 1=mordida, 2=último bocado)
@@ -3294,7 +3457,8 @@
                 'R': '#ef4444',
                 'G': '#22c55e',
                 'Y': '#fbbf24',
-                'P': '#f472b6'
+                'P': '#f472b6',
+                'B': '#38bdf8'
             };
             for (let r = 0; r < grid.length; r++) {
                 const row = grid[r];
@@ -3307,19 +3471,30 @@
             }
         }
 
-        function drawSprite(grid, x, y, scale = 3, flipX = false) {
-            const pal = PET_PALETTES[pet ? pet.color : 'PINK'] || PET_PALETTES.PINK;
+        function drawSprite(grid, x, y, scale = 3, flipX = false, customColorKey = null, isVisitor = false) {
+            const colorKey = customColorKey || (pet ? pet.color : 'PINK');
+            const pal = PET_PALETTES[colorKey] || PET_PALETTES.PINK;
             const colorMap = {
                 'D': pal.dark,
+                'd': pal.dark,
                 'B': pal.body,
+                'b': pal.body,
                 'L': pal.light,
                 'C': pal.cheek,
                 'c': pal.cheek,
+                'S': pal.dark,
+                'P': '#fda4af',
+                'N': '#0f172a',
                 'K': '#0f172a',
+                'M': '#0f172a',
                 'W': '#ffffff',
                 'R': '#f43f5e',
-                'P': '#92400e'
+                'T': '#92400e'
             };
+
+            const expr = isVisitor
+                ? ((uiState.frame % 100 >= 95) ? 'BLINK' : 'HAPPY')
+                : getPetFacialExpression();
 
             for (let r = 0; r < grid.length; r++) {
                 const row = grid[r];
@@ -3332,17 +3507,73 @@
                     const drawCol = flipX ? (row.length - 1 - c) : c;
                     const x1 = Math.floor(x + drawCol * scale);
                     const x2 = Math.floor(x + (drawCol + 1) * scale);
+                    const w = x2 - x1;
 
-                    // Si la mascota está durmiendo, dibuja párpados cerrados (línea gruesa superior)
-                    if (ch === 'K' && pet && pet.isSleeping && (c === 2 || c === 3 || c === 8 || c === 9)) {
-                        ctx.fillStyle = pal.body;
-                        ctx.fillRect(x1, y1, x2 - x1, h);
-                        ctx.fillStyle = pal.dark;
-                        ctx.fillRect(x1, y1, x2 - x1, Math.max(2, Math.floor(scale * 0.4)));
-                    } else {
-                        ctx.fillStyle = colorMap[ch];
-                        ctx.fillRect(x1, y1, x2 - x1, h);
+                    // 1. RENDERIZADO EXPRESIVO DE OJOS ('K')
+                    if (ch === 'K') {
+                        if (expr === 'SLEEP' || expr === 'BLINK') {
+                            ctx.fillStyle = pal.body;
+                            ctx.fillRect(x1, y1, w, h);
+                            ctx.fillStyle = pal.dark;
+                            ctx.fillRect(x1, y1 + Math.floor(h * 0.55), w, Math.max(2, Math.floor(scale * 0.45)));
+                        } else if (expr === 'HAPPY') {
+                            ctx.fillStyle = pal.body;
+                            ctx.fillRect(x1, y1, w, h);
+                            ctx.fillStyle = '#0f172a';
+                            ctx.fillRect(x1, y1, w, Math.max(2, Math.floor(h * 0.45)));
+                            ctx.fillRect(x1, y1 + Math.floor(h * 0.4), Math.max(1, Math.floor(w * 0.35)), Math.max(1, Math.floor(h * 0.4)));
+                            ctx.fillRect(x2 - Math.max(1, Math.floor(w * 0.35)), y1 + Math.floor(h * 0.4), Math.max(1, Math.floor(w * 0.35)), Math.max(1, Math.floor(h * 0.4)));
+                        } else if (expr === 'ANGRY') {
+                            ctx.fillStyle = '#0f172a';
+                            ctx.fillRect(x1, y1 + Math.floor(h * 0.25), w, h - Math.floor(h * 0.25));
+                            ctx.fillStyle = pal.dark;
+                            ctx.fillRect(x1 - 1, y1 - Math.max(1, Math.floor(scale * 0.35)), w + 2, Math.max(2, Math.floor(scale * 0.45)));
+                        } else if (expr === 'SAD') {
+                            ctx.fillStyle = '#0f172a';
+                            ctx.fillRect(x1, y1 + Math.floor(h * 0.2), w, h - Math.floor(h * 0.2));
+                            ctx.fillStyle = '#38bdf8';
+                            ctx.fillRect(x1, y2, Math.max(2, Math.floor(w * 0.7)), Math.max(2, Math.floor(scale * 0.55)));
+                        } else {
+                            // Ojo normal con brillo blanco kawaii mirando hacia el frente del movimiento
+                            ctx.fillStyle = '#0f172a';
+                            ctx.fillRect(x1, y1, w, h);
+                            const glintSize = Math.max(1, Math.floor(scale * 0.48));
+                            const glintX = flipX ? (x2 - glintSize) : x1;
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(glintX, y1, glintSize, glintSize);
+                        }
+                        continue;
                     }
+
+                    // 2. RENDERIZADO EXPRESIVO DE BOCA Y GESTOS ('M')
+                    if (ch === 'M') {
+                        ctx.fillStyle = pal.light;
+                        ctx.fillRect(x1, y1, w, h);
+
+                        if (expr === 'EATING_OPEN') {
+                            ctx.fillStyle = '#be123c';
+                            ctx.fillRect(x1, y1, w, h);
+                            ctx.fillStyle = '#fda4af';
+                            ctx.fillRect(x1, y1 + Math.floor(h * 0.5), w, h - Math.floor(h * 0.5));
+                        } else if (expr === 'HAPPY') {
+                            ctx.fillStyle = '#e11d48';
+                            ctx.fillRect(x1, y1 + Math.floor(h * 0.2), w, Math.max(2, Math.floor(h * 0.7)));
+                        } else if (expr === 'SAD' || expr === 'ANGRY') {
+                            ctx.fillStyle = '#0f172a';
+                            ctx.fillRect(x1, y1 + Math.floor(h * 0.6), w, Math.max(2, Math.floor(scale * 0.4)));
+                        } else if (expr === 'SLEEP') {
+                            ctx.fillStyle = pal.dark;
+                            ctx.fillRect(x1 + Math.floor(w * 0.2), y1 + Math.floor(h * 0.4), Math.max(2, Math.floor(w * 0.6)), Math.max(2, Math.floor(h * 0.4)));
+                        } else {
+                            // Sonrisa tierna por defecto
+                            ctx.fillStyle = '#0f172a';
+                            ctx.fillRect(x1, y1 + Math.floor(h * 0.35), w, Math.max(2, Math.floor(scale * 0.45)));
+                        }
+                        continue;
+                    }
+
+                    ctx.fillStyle = colorMap[ch];
+                    ctx.fillRect(x1, y1, w, h);
                 }
             }
         }
@@ -4100,7 +4331,7 @@
                 const spriteCenterX = vx + (frames[step][0].length * visitorScale) / 2;
                 const vy = 165 - (frames[step].length * visitorScale);
                 ctx.save();
-                drawSpriteWithPalette(frames[step], vx, vy, visitorScale, v.dir < 0, col);
+                drawSpriteWithPalette(frames[step], vx, vy, visitorScale, v.dir > 0, col);
                 ctx.restore();
 
                 if (v.hat) {
@@ -4123,41 +4354,7 @@
         }
 
         function drawSpriteWithPalette(grid, x, y, scale = 3, flipX = false, colorKey = 'PINK') {
-            const pal = PET_PALETTES[colorKey] || PET_PALETTES.PINK;
-            const colorMap = {
-                'D': pal.dark,
-                'B': pal.body,
-                'L': pal.light,
-                'C': pal.cheek,
-                'c': pal.cheek,
-                'K': '#0f172a',
-                'W': '#ffffff',
-                'R': '#f43f5e',
-                'P': '#92400e'
-            };
-
-            const spriteWidth = Math.max(0, ...grid.map(row => row.length)) * scale;
-            const spriteHeight = grid.length * scale;
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(x, y, spriteWidth, spriteHeight);
-            ctx.clip();
-
-            for (let r = 0; r < grid.length; r++) {
-                const row = grid[r];
-                const y1 = Math.floor(y + r * scale);
-                const h = Math.max(0, Math.floor(y + (r + 1) * scale) - y1);
-                for (let c = 0; c < row.length; c++) {
-                    const ch = row[c];
-                    if (ch === '.' || !colorMap[ch]) continue;
-                    const drawCol = flipX ? (row.length - 1 - c) : c;
-                    const x1 = Math.floor(x + drawCol * scale);
-                    const w = Math.max(0, Math.floor(x + (drawCol + 1) * scale) - x1);
-                    ctx.fillStyle = colorMap[ch];
-                    ctx.fillRect(x1, y1, w, h);
-                }
-            }
-            ctx.restore();
+            drawSprite(grid, x, y, scale, flipX, colorKey, true);
         }
 
         function renderMainLoop() {
@@ -4295,13 +4492,13 @@
 
                 // CÁLCULO DE ANIMACIÓN PERSONALIZADA SEGÚN EL OBJETO, VISITA O CURIOSIDAD ACTIVA
                 let toyJump = 0;
-                let flipPet = uiState.petDir < 0;
+                let flipPet = uiState.petDir > 0;
 
                 if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
                     // Salta de emoción saludando a su visita y charlando con ella
                     toyJump = Math.abs(Math.sin(uiState.frame * 0.25)) * 11;
                     animIdx = Math.floor(uiState.frame / 8) % 2;
-                    flipPet = false;
+                    flipPet = true;
                 } else if (uiState.toyTimer > 0 && uiState.activeToy) {
                     const tid = uiState.activeToy.id;
                     if (tid === 'trampoline') {
@@ -4317,7 +4514,7 @@
                     } else if (tid === 'teddy') {
                         // Se inclina suave abrazando al osito mirando hacia él
                         toyJump = Math.abs(Math.sin(uiState.frame * 0.1)) * 3;
-                        flipPet = false;
+                        flipPet = true;
                     } else if (tid === 'music') {
                         // Baila rítmicamente girando de izquierda a derecha al compás de la radio
                         toyJump = Math.abs(Math.sin(uiState.frame * 0.3)) * 10;
