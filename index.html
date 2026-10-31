@@ -2618,9 +2618,20 @@
             }
             const statusBanner = document.getElementById('tripStatusBanner');
             if (pet.isOnTrip) {
-                statusBanner.innerHTML = `<span class="text-amber-400 font-extrabold">🧳 ¡Tu mascota está de viaje!</span><br><button onclick="returnPetFromTripFromOwner()" class="mt-1 px-3 py-1 bg-indigo-600 text-white rounded-xl text-[10px]">Regresar Mascota a Casa</button>`;
+                statusBanner.innerHTML = `
+                    <div class="space-y-1">
+                        <span class="text-amber-300 font-extrabold text-[11px]">🧳 ¡Mascota de viaje! En tu cuarto quedó su maletita.</span><br>
+                        <button onclick="returnPetFromTripFromOwner()" class="mt-1 px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-xl text-[10px] shadow-md transition">
+                            🏠 Regreso de Emergencia / Cancelar Viaje
+                        </button>
+                    </div>
+                `;
             } else {
-                statusBanner.innerHTML = `<button onclick="setPetOnTripState()" class="px-3 py-1 bg-amber-500 text-slate-950 font-black rounded-xl text-[10px]">🧳 Marcar como "En Viaje"</button>`;
+                statusBanner.innerHTML = `
+                    <button onclick="setPetOnTripState()" class="px-3 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-[11px] shadow-md transition">
+                        🧳 Activar Maletita e Ir de Viaje
+                    </button>
+                `;
             }
         }
 
@@ -3924,25 +3935,27 @@
                 const vy = (v.y || 165) - 34 - vJump;
                 drawSpriteWithPalette(vFrames[vStep], v.x, vy, 3, v.dir < 0, v.color);
 
-                // Dibujar sombrerito
+                // Dibujar sombrerito centrado sobre la cabeza de la mascota (ancho = 36px, centro = v.x + 18)
                 if (v.hat) {
                     const hatObj = HAT_CATALOG.find(h => h.id === v.hat);
                     if (hatObj) {
                         ctx.save();
                         ctx.fillStyle = '#ffffff';
-                        ctx.font = '13px sans-serif';
+                        ctx.globalAlpha = 1.0;
+                        ctx.font = '14px sans-serif';
                         ctx.textAlign = 'center';
-                        ctx.fillText(hatObj.icon, v.x + 14, vy + 4);
+                        ctx.fillText(hatObj.icon, v.x + 18, vy + 2);
                         ctx.restore();
                     }
                 }
 
-                // Nombre de la visita
+                // Nombre de la visita centrado sobre la mascota
                 ctx.save();
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '800 8px "Nunito", sans-serif';
+                ctx.globalAlpha = 1.0;
+                ctx.font = '800 9px "Nunito", sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(v.name, v.x + 14, vy - 2);
+                ctx.fillText(v.name, v.x + 18, vy - 4);
                 ctx.restore();
             });
 
