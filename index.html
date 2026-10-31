@@ -59,6 +59,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Librerías ligeras para generar y escanear códigos QR offline con cámara -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -406,6 +409,76 @@
                     <p>🎮 <b>Minijuegos Progresivos:</b> Empiezan muy despacito en Nivel 1 y van subiendo poco a poco.</p>
                 </div>
                 <button onclick="toggleModal('helpModal', false)" class="mt-4 w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition">¡A Jugar!</button>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             MODAL 4: SISTEMA MULTIJUGADOR OFFLINE POR CÓDIGO QR
+             ========================================================== -->
+        <div id="qrTravelModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+            <div class="bg-slate-900 border border-amber-400/50 rounded-3xl max-w-sm w-full p-4 shadow-2xl text-slate-200 flex flex-col max-h-[92dvh] overflow-hidden">
+                <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">🧳</span>
+                        <h2 class="pixel-font text-[10px] text-amber-300">VISITAS & PASAPORTE QR</h2>
+                    </div>
+                    <button onclick="closeQRModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <!-- Pestañas de Navegación del Modal QR -->
+                <div class="flex bg-slate-950 p-1 rounded-2xl my-3 border border-slate-800 gap-1 text-[10px] font-bold">
+                    <button onclick="switchQRTab('MY_PASSPORT')" id="tabBtnPassport" class="flex-1 py-1.5 rounded-xl bg-amber-500 text-slate-950 transition">🧳 Mi QR</button>
+                    <button onclick="switchQRTab('SCAN_VISIT')" id="tabBtnScan" class="flex-1 py-1.5 rounded-xl text-slate-400 transition">📷 Escanear</button>
+                    <button onclick="switchQRTab('VISITORS_LIST')" id="tabBtnList" class="flex-1 py-1.5 rounded-xl text-slate-400 transition">👥 Visitas (<span id="qrVisitorCount">0</span>/3)</button>
+                </div>
+
+                <!-- Contenido Dinámico de las Pestañas -->
+                <div class="flex-1 overflow-y-auto no-scrollbar space-y-3">
+                    <!-- Tab 1: Mi Pasaporte (Generar QR de mi mascota) -->
+                    <div id="qrTabPassport" class="space-y-3">
+                        <div class="text-center bg-slate-800/80 p-3 rounded-2xl border border-slate-700">
+                            <p class="text-xs font-extrabold text-amber-300 mb-1">¡Manda a tu Tamagotchi de visita!</p>
+                            <p class="text-[10px] text-slate-400">Muestra este código QR a un amigo para que lo escanee con su cámara y tu mascota aparezca en su pantalla.</p>
+                            <div class="flex justify-center my-3 bg-white p-3 rounded-2xl w-fit mx-auto shadow-inner" id="myQrContainer"></div>
+                            <div id="tripStatusBanner" class="text-[11px] font-extrabold text-sky-300"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Escanear Visita (Cámara para leer QR del amigo) -->
+                    <div id="qrTabScan" class="hidden space-y-3">
+                        <div class="bg-slate-800/80 p-3 rounded-2xl border border-slate-700 text-center">
+                            <p class="text-xs font-extrabold text-amber-300 mb-1">Escanear QR de un amigo</p>
+                            <p class="text-[10px] text-slate-400 mb-2">Apunta la cámara al código QR de la mascota que te va a visitar (Máximo 3 visitas a la vez).</p>
+                            <div id="qrReaderContainer" class="w-full h-48 bg-slate-950 rounded-2xl overflow-hidden border border-slate-700 flex items-center justify-center text-xs text-slate-500">
+                                Cámara lista...
+                            </div>
+                            <div class="mt-3 pt-2 border-t border-slate-700/60">
+                                <label class="block text-[9px] text-slate-400 mb-1">¿Sin cámara? Pega el código del QR aquí:</label>
+                                <div class="flex gap-1.5">
+                                    <input id="manualQrInput" type="text" placeholder="Pega el código TAMA_V1..." class="flex-1 px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-[10px] text-white">
+                                    <button onclick="processManualQRInput()" class="px-3 py-1.5 bg-emerald-600 text-white font-extrabold rounded-xl text-[10px]">Cargar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Visitas Activas (Hasta 3) -->
+                    <div id="qrTabVisitors" class="hidden space-y-3">
+                        <div class="text-xs font-extrabold text-amber-300 flex justify-between items-center">
+                            <span>Mascotas Hospedadas actualmente:</span>
+                            <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded-full text-slate-300 border border-slate-700"><span id="qrListCount">0</span>/3</span>
+                        </div>
+                        <div id="activeVisitorsContainer" class="space-y-2"></div>
+                        <div id="returnQrContainer" class="hidden bg-slate-800/90 p-3 rounded-2xl border border-emerald-500/40 text-center space-y-2">
+                            <p class="text-xs font-extrabold text-emerald-300">¡Boleto de Regreso Generado! 🎟️</p>
+                            <p class="text-[10px] text-slate-300">Muestra este QR a tu amigo para que lo escanee y reciba a su mascota con su regalo.</p>
+                            <div class="flex justify-center bg-white p-3 rounded-2xl w-fit mx-auto shadow-inner" id="returnQrGraphic"></div>
+                            <button onclick="closeReturnQRView()" class="w-full py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-extrabold">Listo</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="closeQRModal()" class="mt-3 w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl text-xs transition">Cerrar</button>
             </div>
         </div>
 
@@ -782,7 +855,7 @@
                 { x: 140, y: 36, w: 28, speed: 0.08 }
             ],
             butterfly: { x: 60, y: 95, angle: 0 },
-            visitor: { active: false, species: 'BUNNY', x: 175, timer: 0, giftGiven: false, role: 'FRIEND', icon: '🎁' }
+            visitors: [] // Arreglo de hasta 3 visitas interactuando simultáneamente
         };
 
         let miniGame = {
@@ -1541,30 +1614,52 @@
                     SFX.tap();
                 }
 
-                // Visitantes aleatorios ocasionales (en Casa o en el Parque) que suben la felicidad y traen sorpresas
-                if (uiState.mode === 'IDLE' && !pet.isSleeping && !uiState.visitor.active && pet.ageSeconds % 95 === 0 && Math.random() < 0.55) {
+                // Lógica multijugador: actualización de hasta 3 visitas activas simultáneamente
+                if (!Array.isArray(uiState.visitors)) uiState.visitors = [];
+
+                // Generación de visitas sorpresa NPC si hay menos de 3 visitas en pantalla
+                if (uiState.mode === 'IDLE' && !pet.isSleeping && uiState.visitors.length < 3 && pet.ageSeconds % 90 === 0 && Math.random() < 0.45) {
                     const allSp = ['CAT', 'PUPPY', 'BUNNY', 'DINO'].filter(s => s !== pet.species);
-                    uiState.visitor.species = allSp[Math.floor(Math.random() * allSp.length)];
-                    const roles = [
-                        { role: 'FRIEND', icon: '🎈', msg: '¡VINO UN AMIGUITO A JUGAR! 💖+15', happy: 15, coins: 5 },
-                        { role: 'MAIL',   icon: '💌', msg: '¡CARTERO GOTCHI TRAJO REGALO! 🪙+12', happy: 12, coins: 12 },
-                        { role: 'CHEF',   icon: '🧁', msg: '¡VISITA DULCE! +FELICIDAD 🧁', happy: 18, coins: 0, hunger: 15 }
-                    ];
-                    const chosen = roles[Math.floor(Math.random() * roles.length)];
-                    uiState.visitor.active = true;
-                    uiState.visitor.timer = 22;
-                    uiState.visitor.role = chosen.role;
-                    uiState.visitor.icon = chosen.icon;
-                    pet.happiness = Math.min(100, pet.happiness + chosen.happy);
-                    pet.coins += chosen.coins;
-                    if (chosen.hunger) pet.hunger = Math.min(100, pet.hunger + chosen.hunger);
+                    const chosenSp = allSp[Math.floor(Math.random() * allSp.length)];
+                    const npcColors = ['SKY', 'PINK', 'MINT', 'SUNNY', 'LAVENDER'];
+                    const npcHats = [null, 'CROWN', 'BOW', 'CAP', 'FLOWER'];
+                    const npcNames = ['Kira', 'Poco', 'Mimi', 'Toby', 'Nori'];
+
+                    const newNpc = {
+                        id: 'npc_' + Date.now(),
+                        name: npcNames[Math.floor(Math.random() * npcNames.length)],
+                        species: chosenSp,
+                        color: npcColors[Math.floor(Math.random() * npcColors.length)],
+                        hat: npcHats[Math.floor(Math.random() * npcHats.length)],
+                        x: Math.floor(40 + Math.random() * 140),
+                        y: Math.floor(150 + Math.random() * 25),
+                        targetX: Math.floor(40 + Math.random() * 140),
+                        targetY: Math.floor(150 + Math.random() * 25),
+                        pauseTimer: 0,
+                        dir: Math.random() < 0.5 ? 1 : -1,
+                        isQR: false,
+                        timer: 180,
+                        chatTimer: 0,
+                        chatEmoji: '🎈'
+                    };
+                    uiState.visitors.push(newNpc);
+                    pet.happiness = Math.min(100, pet.happiness + 12);
+                    pet.coins += 5;
                     SFX.happy();
-                    showBanner(chosen.msg);
+                    showBanner(`¡LLEGÓ ${newNpc.name.toUpperCase()} DE VISITA! 🎈✨`);
                     unlockCareBadge('FRIENDLY', 'BUEN AMIGO');
                 }
-                if (uiState.visitor.active) {
-                    uiState.visitor.timer--;
-                    if (uiState.visitor.timer <= 0) uiState.visitor.active = false;
+
+                // Despedida progresiva de visitas NPC por tiempo
+                for (let i = uiState.visitors.length - 1; i >= 0; i--) {
+                    const v = uiState.visitors[i];
+                    if (!v.isQR) {
+                        v.timer--;
+                        if (v.timer <= 0) {
+                            uiState.visitors.splice(i, 1);
+                            showBanner(`¡${v.name.toUpperCase()} SE DESPIDIÓ! 👋`);
+                        }
+                    }
                 }
 
                 // Interacción automática guiada por juguetes o por su Cerebro IA de Temperamento
@@ -2385,7 +2480,7 @@
             if (!pet) return;
             SFX.select();
             const drawer = document.getElementById('subMenuDrawer');
-            document.getElementById('drawerTitle').textContent = '🗺️ LUGARES, JUGUETES Y ACCESORIOS';
+            document.getElementById('drawerTitle').textContent = '🗺️ LUGARES, VISITAS QR Y ACCESORIOS';
 
             const placesHtml = PLACES_CATALOG.map(p => {
                 const isCurr = uiState.location === p.id;
@@ -2430,14 +2525,296 @@
             }).join('');
 
             document.getElementById('drawerContent').innerHTML = `
+                <!-- Botón Principal Multijugador QR -->
+                <button onclick="openQRTravelModal()" class="w-full mb-3 p-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-slate-950 font-black text-xs flex items-center justify-between shadow-lg transition">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🧳</span>
+                        <div class="text-left leading-tight text-white">
+                            <div class="font-black text-xs">Visitas & Pasaporte QR</div>
+                            <div class="text-[9px] text-amber-200">Mandar de viaje o recibir hasta 3 mascotas</div>
+                        </div>
+                    </div>
+                    <span class="px-2 py-1 bg-slate-900/80 text-amber-300 rounded-xl text-[10px]">Abrir QR 📱</span>
+                </button>
+
                 <div class="text-[10px] font-bold text-slate-400 mb-1">Ir de paseo a:</div>
                 <div class="grid grid-cols-4 gap-1.5 mb-2.5">${placesHtml}</div>
-                <div class="text-[10px] font-bold text-slate-400 mb-1">Sombreritos y Accesorios (Estilo Tamagotchi Uni):</div>
+                <div class="text-[10px] font-bold text-slate-400 mb-1">Sombreritos y Accesorios:</div>
                 <div class="grid grid-cols-5 gap-1 mb-2.5">${hatsHtml}</div>
                 <div class="text-[10px] font-bold text-slate-400 mb-1">Juguetes (⭐ = Su favorito le da doble felicidad):</div>
                 <div class="grid grid-cols-2 gap-1.5">${decorHtml}</div>
             `;
             drawer.classList.remove('hidden');
+        }
+
+        // ==========================================================
+        // FUNCIONES DE CONTROL MULTIJUGADOR OFFLINE MEDIANTE QR
+        // ==========================================================
+        let activeQrScanner = null;
+
+        function openQRTravelModal() {
+            if (!pet) return;
+            closeDrawer();
+            toggleModal('qrTravelModal', true);
+            renderMyPassportQR();
+            updateVisitorsListUI();
+            switchQRTab('MY_PASSPORT');
+        }
+
+        function closeQRModal() {
+            stopQRScanner();
+            toggleModal('qrTravelModal', false);
+        }
+
+        function switchQRTab(tabKey) {
+            stopQRScanner();
+            document.getElementById('qrTabPassport').classList.add('hidden');
+            document.getElementById('qrTabScan').classList.add('hidden');
+            document.getElementById('qrTabVisitors').classList.add('hidden');
+
+            document.getElementById('tabBtnPassport').className = 'flex-1 py-1.5 rounded-xl text-slate-400 transition';
+            document.getElementById('tabBtnScan').className = 'flex-1 py-1.5 rounded-xl text-slate-400 transition';
+            document.getElementById('tabBtnList').className = 'flex-1 py-1.5 rounded-xl text-slate-400 transition';
+
+            if (tabKey === 'MY_PASSPORT') {
+                document.getElementById('qrTabPassport').classList.remove('hidden');
+                document.getElementById('tabBtnPassport').className = 'flex-1 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold transition';
+                renderMyPassportQR();
+            } else if (tabKey === 'SCAN_VISIT') {
+                document.getElementById('qrTabScan').classList.remove('hidden');
+                document.getElementById('tabBtnScan').className = 'flex-1 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold transition';
+                startQRCameraScanner();
+            } else if (tabKey === 'VISITORS_LIST') {
+                document.getElementById('qrTabVisitors').classList.remove('hidden');
+                document.getElementById('tabBtnList').className = 'flex-1 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold transition';
+                updateVisitorsListUI();
+            }
+        }
+
+        function renderMyPassportQR() {
+            if (!pet) return;
+            const container = document.getElementById('myQrContainer');
+            container.innerHTML = '';
+            const payload = {
+                t: 'VISIT',
+                n: pet.name,
+                s: pet.species,
+                c: pet.color,
+                h: pet.equippedHat || '',
+                w: pet.weight
+            };
+            const qrStr = 'TAMA_V1:' + JSON.stringify(payload);
+            try {
+                new QRCode(container, {
+                    text: qrStr,
+                    width: 140,
+                    height: 140,
+                    colorDark: '#0f172a',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } catch(e) {
+                container.textContent = 'Generando QR...';
+            }
+            const statusBanner = document.getElementById('tripStatusBanner');
+            if (pet.isOnTrip) {
+                statusBanner.innerHTML = `<span class="text-amber-400 font-extrabold">🧳 ¡Tu mascota está de viaje!</span><br><button onclick="returnPetFromTripFromOwner()" class="mt-1 px-3 py-1 bg-indigo-600 text-white rounded-xl text-[10px]">Regresar Mascota a Casa</button>`;
+            } else {
+                statusBanner.innerHTML = `<button onclick="setPetOnTripState()" class="px-3 py-1 bg-amber-500 text-slate-950 font-black rounded-xl text-[10px]">🧳 Marcar como "En Viaje"</button>`;
+            }
+        }
+
+        function setPetOnTripState() {
+            if (!pet) return;
+            pet.isOnTrip = true;
+            renderMyPassportQR();
+            showBanner('🧳 ¡TU MASCOTA SALIÓ DE VISITA! EN CASA SE MUESTRA SU MALETA');
+            saveGame();
+        }
+
+        function returnPetFromTripFromOwner() {
+            if (!pet) return;
+            pet.isOnTrip = false;
+            renderMyPassportQR();
+            showBanner('🏠 ¡TU MASCOTA REGRESÓ A CASA!');
+            saveGame();
+        }
+
+        function startQRCameraScanner() {
+            const container = document.getElementById('qrReaderContainer');
+            container.innerHTML = '';
+            if (typeof Html5Qrcode === 'undefined') {
+                container.innerHTML = '<div class="p-3 text-rose-400">Librería de cámara no disponible. Usa la opción manual abajo.</div>';
+                return;
+            }
+            try {
+                const html5QrCode = new Html5Qrcode("qrReaderContainer");
+                activeQrScanner = html5QrCode;
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 170, height: 170 } },
+                    (decodedText) => {
+                        stopQRScanner();
+                        processScannedQRData(decodedText);
+                    },
+                    () => {}
+                ).catch(err => {
+                    container.innerHTML = `<div class="p-3 text-slate-400">Apunta a un QR de Tamagotchi.<br><span class="text-amber-300">O usa el ingreso manual de código ⬇️</span></div>`;
+                });
+            } catch(e) {
+                container.innerHTML = '<div class="p-3 text-slate-400">Usa el ingreso de código manual abajo.</div>';
+            }
+        }
+
+        function stopQRScanner() {
+            if (activeQrScanner) {
+                activeQrScanner.stop().catch(()=>{}).finally(()=>{ activeQrScanner = null; });
+            }
+        }
+
+        function processManualQRInput() {
+            const val = document.getElementById('manualQrInput').value.trim();
+            if (!val) return;
+            processScannedQRData(val);
+            document.getElementById('manualQrInput').value = '';
+        }
+
+        function processScannedQRData(rawStr) {
+            if (!rawStr || (!rawStr.startsWith('TAMA_V1:') && !rawStr.startsWith('TAMA_RET1:'))) {
+                SFX.bad();
+                showBanner('❌ CÓDIGO QR NO VÁLIDO DE TAMAGOTCHI');
+                return;
+            }
+
+            if (rawStr.startsWith('TAMA_RET1:')) {
+                try {
+                    const json = JSON.parse(rawStr.replace('TAMA_RET1:', ''));
+                    pet.isOnTrip = false;
+                    pet.happiness = 100;
+                    pet.coins += (json.coins || 30);
+                    SFX.evolve();
+                    showBanner(`🏠 ¡${pet.name} REGRESÓ DE SU VIAJE CON REGALO! 🎁 +${json.coins || 30}🪙`);
+                    closeQRModal();
+                    saveGame();
+                    return;
+                } catch(e){}
+            }
+
+            try {
+                const data = JSON.parse(rawStr.replace('TAMA_V1:', ''));
+                if (!Array.isArray(uiState.visitors)) uiState.visitors = [];
+
+                if (uiState.visitors.length >= 3) {
+                    SFX.bad();
+                    showBanner('⚠️ ¡YA HAY 3 VISITAS EN CASA! DESPIDE A UNA PRIMERO');
+                    return;
+                }
+
+                const newVisitor = {
+                    id: 'qr_' + Date.now(),
+                    name: data.n || 'Amigo',
+                    species: data.s || 'CAT',
+                    color: data.c || 'PINK',
+                    hat: data.h || null,
+                    x: Math.floor(40 + Math.random() * 140),
+                    y: Math.floor(150 + Math.random() * 25),
+                    targetX: Math.floor(40 + Math.random() * 140),
+                    targetY: Math.floor(150 + Math.random() * 25),
+                    pauseTimer: 0,
+                    dir: 1,
+                    isQR: true,
+                    chatTimer: 0,
+                    chatEmoji: '✨'
+                };
+
+                uiState.visitors.push(newVisitor);
+                pet.happiness = Math.min(100, pet.happiness + 20);
+                SFX.evolve();
+                showBanner(`✨ ¡${newVisitor.name.toUpperCase()} LLEGÓ DE VISITA POR QR! 🎉`);
+                unlockCareBadge('FRIENDLY', 'BUEN AMIGO');
+                updateVisitorsListUI();
+                switchQRTab('VISITORS_LIST');
+                saveGame();
+            } catch(e) {
+                SFX.bad();
+                showBanner('❌ ERROR AL LEER CÓDIGO QR');
+            }
+        }
+
+        function updateVisitorsListUI() {
+            const list = uiState.visitors || [];
+            const countEl1 = document.getElementById('qrVisitorCount');
+            const countEl2 = document.getElementById('qrListCount');
+            if (countEl1) countEl1.textContent = list.length;
+            if (countEl2) countEl2.textContent = list.length;
+            const container = document.getElementById('activeVisitorsContainer');
+            if (!container) return;
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="text-[11px] text-slate-400 text-center py-4 bg-slate-950/60 rounded-2xl border border-slate-800">No hay visitas en casa actualmente.<br>¡Escanea un QR para hospedar hasta 3 amigos!</div>`;
+                return;
+            }
+
+            container.innerHTML = list.map((v, idx) => {
+                const sp = SPECIES_INFO[v.species] || SPECIES_INFO.CAT;
+                return `
+                    <div class="bg-slate-800 p-2.5 rounded-2xl border border-slate-700 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">${sp.emoji}</span>
+                            <div>
+                                <div class="font-extrabold text-xs text-white">${v.name} <span class="text-[9px] text-amber-300">(${v.isQR ? 'QR Amigo' : 'Visita NPC'})</span></div>
+                                <div class="text-[10px] text-slate-400">${sp.name} • Color ${v.color}</div>
+                            </div>
+                        </div>
+                        <button onclick="dismissVisitorAndMakeReturnQR(${idx})" class="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-[10px] font-extrabold flex items-center gap-1">
+                            <span>Despedir</span> 🎟️
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function dismissVisitorAndMakeReturnQR(index) {
+            const list = uiState.visitors || [];
+            if (index < 0 || index >= list.length) return;
+            const v = list[index];
+
+            const returnPayload = {
+                t: 'RETURN',
+                n: v.name,
+                coins: 30,
+                msg: '¡Gracias por la visita!'
+            };
+            const retStr = 'TAMA_RET1:' + JSON.stringify(returnPayload);
+
+            list.splice(index, 1);
+            updateVisitorsListUI();
+
+            const graphicContainer = document.getElementById('returnQrGraphic');
+            if (graphicContainer) {
+                graphicContainer.innerHTML = '';
+                try {
+                    new QRCode(graphicContainer, {
+                        text: retStr,
+                        width: 140,
+                        height: 140,
+                        colorDark: '#047857',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } catch(e){}
+            }
+
+            const returnBox = document.getElementById('returnQrContainer');
+            if (returnBox) returnBox.classList.remove('hidden');
+            SFX.happy();
+            showBanner(`🎟️ ¡${v.name.toUpperCase()} SE DESPIDIÓ! QR DE REGRESO GENERADO`);
+            saveGame();
+        }
+
+        function closeReturnQRView() {
+            const returnBox = document.getElementById('returnQrContainer');
+            if (returnBox) returnBox.classList.add('hidden');
         }
 
         function buyOrEquipHat(hatId) {
@@ -3099,19 +3476,8 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Visitante sorpresa dentro de la Sala si está activo
-            if (uiState.visitor.active && pet && pet.stage !== 'EGG') {
-                const vFrames = SPRITES[uiState.visitor.species] || SPRITES.BUNNY;
-                const vStep = Math.floor(uiState.frame / 20) % 2;
-                drawSprite(vFrames[vStep], 172, 118, 2.8, true);
-                ctx.save();
-                ctx.fillStyle = '#ffffff';
-                ctx.globalAlpha = 1;
-                ctx.font = '14px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(uiState.visitor.icon || '🎁', 165, 118);
-                ctx.restore();
-            }
+            // Renderizar hasta 3 visitas activas interactuando entre sí en la Sala
+            drawActiveVisitorsOnCanvas();
 
             // Dibujar TODAS las decoraciones colocadas en la Sala con animaciones propias por objeto
             if (pet && Array.isArray(pet.placedDecor)) {
@@ -3436,20 +3802,8 @@
                 });
             }
 
-            if (uiState.visitor.active && pet && pet.stage !== 'EGG') {
-                const vFrames = SPRITES[uiState.visitor.species] || SPRITES.BUNNY;
-                const vStep = Math.floor(uiState.frame / 25) % 2;
-                drawSprite(vFrames[vStep], 178, 112, 3, true);
-                ctx.save();
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '14px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(uiState.visitor.icon || '🎁', 170, 108);
-                ctx.restore();
-                if (vStep === 0) {
-                    drawSprite(SPRITES.HEART, 185, 96, 2);
-                }
-            }
+            // Renderizar hasta 3 visitas activas interactuando entre sí en el Exterior
+            drawActiveVisitorsOnCanvas();
         }
 
         function renderMinigameScene() {
@@ -3507,6 +3861,151 @@
             }
         }
 
+        // Renderizado gráfico de hasta 3 visitas interactuando entre sí en el lienzo Canvas
+        function drawActiveVisitorsOnCanvas() {
+            if (!pet || pet.stage === 'EGG' || !Array.isArray(uiState.visitors) || uiState.visitors.length === 0) return;
+
+            const list = uiState.visitors;
+            const inSpecialRoom = pet.isSleeping || (uiState.mode === 'ANIMATING' && ['KITCHEN', 'BATHROOM', 'HOSPITAL', 'SCHOOL'].includes(uiState.sceneOverride));
+            if (inSpecialRoom) return;
+
+            // 1. Movimiento autónomo e interactivo de cada visita
+            list.forEach(v => {
+                if (v.pauseTimer > 0) {
+                    v.pauseTimer--;
+                } else {
+                    const dx = v.targetX - v.x;
+                    const dy = v.targetY - v.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < 3) {
+                        v.pauseTimer = Math.floor(50 + Math.random() * 80);
+                        v.targetX = Math.floor(35 + Math.random() * 150);
+                        v.targetY = Math.floor(148 + Math.random() * 25);
+                    } else {
+                        v.dir = dx > 0 ? 1 : -1;
+                        v.x += Math.cos(Math.atan2(dy, dx)) * 0.48;
+                        v.y += Math.sin(Math.atan2(dy, dx)) * 0.48;
+                    }
+                }
+            });
+
+            // 2. Detectar si 2 o más visitas están cerca para interactuar entre ellas
+            let pairedInteraction = false;
+            let pairX1 = 0, pairX2 = 0, pairY = 0;
+            if (list.length >= 2) {
+                for (let i = 0; i < list.length; i++) {
+                    for (let j = i + 1; j < list.length; j++) {
+                        const v1 = list[i];
+                        const v2 = list[j];
+                        const dist = Math.hypot(v1.x - v2.x, v1.y - v2.y);
+                        if (dist < 55) {
+                            pairedInteraction = true;
+                            pairX1 = Math.min(v1.x, v2.x);
+                            pairX2 = Math.max(v1.x, v2.x);
+                            pairY = (v1.y + v2.y) / 2;
+                            v1.dir = (v2.x > v1.x) ? 1 : -1;
+                            v2.dir = (v1.x > v2.x) ? 1 : -1;
+                        }
+                    }
+                }
+            }
+
+            // 3. Dibujar sprites de las visitas
+            list.forEach((v, idx) => {
+                const vFrames = SPRITES[v.species] || SPRITES.BUNNY;
+                let vStep = Math.floor((uiState.frame + idx * 8) / 18) % 2;
+                let vJump = 0;
+
+                if (pairedInteraction) {
+                    vJump = Math.abs(Math.sin((uiState.frame + idx * 6) * 0.24)) * 9;
+                    vStep = Math.floor(uiState.frame / 7) % 2;
+                }
+
+                const vy = (v.y || 165) - 34 - vJump;
+                drawSpriteWithPalette(vFrames[vStep], v.x, vy, 3, v.dir < 0, v.color);
+
+                // Dibujar sombrerito
+                if (v.hat) {
+                    const hatObj = HAT_CATALOG.find(h => h.id === v.hat);
+                    if (hatObj) {
+                        ctx.save();
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '13px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(hatObj.icon, v.x + 14, vy + 4);
+                        ctx.restore();
+                    }
+                }
+
+                // Nombre de la visita
+                ctx.save();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '800 8px "Nunito", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(v.name, v.x + 14, vy - 2);
+                ctx.restore();
+            });
+
+            // 4. Efectos visuales de animación interactiva entre las visitas
+            if (pairedInteraction) {
+                ctx.save();
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+
+                const interactType = Math.floor(uiState.frame / 50) % 3;
+                if (interactType === 0) {
+                    // Pelota compartida rebotando de una visita a la otra
+                    const ballProgress = Math.abs(Math.sin(uiState.frame * 0.12));
+                    const ballX = pairX1 + 14 + ballProgress * (pairX2 - pairX1);
+                    const ballY = pairY - 12 - Math.sin(ballProgress * Math.PI) * 16;
+                    ctx.font = '14px sans-serif';
+                    ctx.fillText('⚽', ballX, ballY);
+                } else if (interactType === 1) {
+                    // Baile con notas musicales flotantes
+                    ctx.font = '12px sans-serif';
+                    ctx.fillText('🎵', pairX1 + 18, pairY - 26 - (uiState.frame % 10));
+                    ctx.fillText('🎶', pairX2 + 8, pairY - 22 - ((uiState.frame + 5) % 10));
+                } else {
+                    // Emojis de charla y chisme
+                    const emojis = ['💬', '❤️', '🎉', '🍦', '✨', '⭐'];
+                    const eIndex = Math.floor(uiState.frame / 18) % emojis.length;
+                    ctx.font = '14px sans-serif';
+                    ctx.fillText(emojis[eIndex], (pairX1 + pairX2) / 2 + 14, pairY - 24);
+                }
+                ctx.restore();
+            }
+        }
+
+        function drawSpriteWithPalette(grid, x, y, scale = 3, flipX = false, colorKey = 'PINK') {
+            const pal = PET_PALETTES[colorKey] || PET_PALETTES.PINK;
+            const colorMap = {
+                'D': pal.dark,
+                'B': pal.body,
+                'L': pal.light,
+                'C': pal.cheek,
+                'c': pal.cheek,
+                'K': '#0f172a',
+                'W': '#ffffff',
+                'R': '#f43f5e',
+                'P': '#92400e'
+            };
+
+            for (let r = 0; r < grid.length; r++) {
+                const row = grid[r];
+                const y1 = Math.floor(y + r * scale);
+                const h = Math.floor((r + 1) * scale) - y1;
+                for (let c = 0; c < row.length; c++) {
+                    const ch = row[c];
+                    if (ch === '.' || !colorMap[ch]) continue;
+                    const drawCol = flipX ? (row.length - 1 - c) : c;
+                    const x1 = Math.floor(x + drawCol * scale);
+                    const w = Math.floor((drawCol + 1) * scale) - x1;
+                    ctx.fillStyle = colorMap[ch];
+                    ctx.fillRect(x1, y1, w, h);
+                }
+            }
+        }
+
         function renderMainLoop() {
             uiState.frame++;
 
@@ -3561,8 +4060,8 @@
                     return;
                 }
 
-                // Si hay un visitante activo, nuestra mascota reacciona: camina hacia él y lo mira emocionada
-                if (uiState.visitor.active && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
+                // Si hay visitantes activos en la lista, nuestra mascota reacciona: camina hacia ellos y los mira emocionada
+                if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
                     uiState.activeToy = null;
                     uiState.toyTimer = 0;
                     const visitorTargetX = 118;
@@ -3641,7 +4140,7 @@
                 let toyJump = 0;
                 let flipPet = uiState.petDir < 0;
 
-                if (uiState.visitor.active && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
+                if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
                     // Salta de emoción saludando a su visita y charlando con ella
                     toyJump = Math.abs(Math.sin(uiState.frame * 0.25)) * 11;
                     animIdx = Math.floor(uiState.frame / 8) % 2;
@@ -3714,23 +4213,37 @@
 
                 const drawY = baseY;
 
-                // Sombra en el suelo (se hace más pequeña cuando salta alto en el brincolín o flota con el globo)
-                if (!inSpecialRoom && uiState.curiousAnim !== 'PEEK_SCREEN') {
-                    const shadowScale = Math.max(0.35, 1 - (toyJump / 70));
-                    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+                // Si la mascota está de viaje en lo de un amigo, dibujamos su equipaje 🧳 esperándolo
+                if (pet.isOnTrip && !inSpecialRoom) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.18)';
                     ctx.beginPath();
-                    ctx.ellipse(drawX + (6 * sc), floorY, (6 * sc) * shadowScale, 4 * shadowScale, 0, 0, Math.PI * 2);
+                    ctx.ellipse(120, floorY, 18, 5, 0, 0, Math.PI * 2);
                     ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '28px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('🧳', 120, floorY - 4 + Math.sin(uiState.frame * 0.08) * 2);
+                    ctx.font = '800 8px "Nunito", sans-serif';
+                    ctx.fillText('De viaje...', 120, floorY - 32);
+                } else {
+                    // Sombra en el suelo
+                    if (!inSpecialRoom && uiState.curiousAnim !== 'PEEK_SCREEN') {
+                        const shadowScale = Math.max(0.35, 1 - (toyJump / 70));
+                        ctx.fillStyle = 'rgba(0,0,0,0.16)';
+                        ctx.beginPath();
+                        ctx.ellipse(drawX + (6 * sc), floorY, (6 * sc) * shadowScale, 4 * shadowScale, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    // Restablecer fillStyle opaco
+                    ctx.fillStyle = '#ffffff';
+                    ctx.globalAlpha = 1.0;
+
+                    drawSprite(frames[animIdx], drawX, drawY, sc, flipPet);
                 }
 
-                // Restablecer fillStyle opaco después de dibujar la sombra para que nada se vuelva transparente
-                ctx.fillStyle = '#ffffff';
-                ctx.globalAlpha = 1.0;
-
-                drawSprite(frames[animIdx], drawX, drawY, sc, flipPet);
-
                 // Reacción interactiva cuando hay un amigo de visita (globos de plática, notas y corazones entre ambos)
-                if (uiState.visitor.active && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
+                if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
                     ctx.save();
                     ctx.fillStyle = '#ffffff';
                     ctx.textAlign = 'center';
