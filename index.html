@@ -3921,7 +3921,7 @@
             // Forzar todas las visitas al piso y tamaño pequeño (2.2 = más chico que el adulto 5)
             list.forEach(v => {
                 if (typeof v.x !== 'number' || isNaN(v.x)) v.x = 80;
-                if (!SPRITES[v.species]) v.species = 'CAT';
+                if (!SPECIES_INFO[v.species]) v.species = 'CAT';
                 if (!PET_PALETTES[v.color]) v.color = 'PINK';
                 v.y = 160;
                 v.targetY = 160;
@@ -3951,9 +3951,10 @@
                 const col = PET_PALETTES[v.color] ? v.color : 'PINK';
                 const step = uiState.frame % 30 < 15 ? 0 : 1;
                 const vx = Math.floor(v.x);
-                const vy = 126;
+                const visitorScale = 2.2;
+                const vy = 165 - (12 * visitorScale);
                 ctx.save();
-                drawSpriteWithPalette(frames[step], vx, vy, 2.2, v.dir < 0, col);
+                drawSpriteWithPalette(frames[step], vx, vy, visitorScale, v.dir < 0, col);
                 ctx.restore();
 
                 if (v.hat) {
@@ -3992,13 +3993,13 @@
             for (let r = 0; r < grid.length; r++) {
                 const row = grid[r];
                 const y1 = Math.floor(y + r * scale);
-                const h = Math.floor((r + 1) * scale) - y1;
+                const h = Math.floor(y + (r + 1) * scale) - y1;
                 for (let c = 0; c < row.length; c++) {
                     const ch = row[c];
                     if (ch === '.' || !colorMap[ch]) continue;
                     const drawCol = flipX ? (row.length - 1 - c) : c;
                     const x1 = Math.floor(x + drawCol * scale);
-                    const w = Math.floor((drawCol + 1) * scale) - x1;
+                    const w = Math.floor(x + (drawCol + 1) * scale) - x1;
                     ctx.fillStyle = colorMap[ch];
                     ctx.fillRect(x1, y1, w, h);
                 }
