@@ -3910,7 +3910,7 @@
             }
         }
 
-        // Renderizado gráfico de hasta 3 visitas interactuando entre sí en el lienzo Canvas
+        // Renderizado gráfico de hasta 3 visitas - ULTRA FIX: sin volar, sin gigante, escala pequeña
         function drawActiveVisitorsOnCanvas() {
             if (!pet || pet.stage === 'EGG' || !Array.isArray(uiState.visitors) || uiState.visitors.length === 0) return;
 
@@ -3918,129 +3918,61 @@
             const inSpecialRoom = pet.isSleeping || (uiState.mode === 'ANIMATING' && ['KITCHEN', 'BATHROOM', 'HOSPITAL', 'SCHOOL'].includes(uiState.sceneOverride));
             if (inSpecialRoom) return;
 
-            // FIX DEFINITIVO: Visita siempre en el piso, sin volar
+            // Forzar todas las visitas al piso y tamaño pequeño (2.2 = más chico que el adulto 5)
             list.forEach(v => {
-                if (typeof v.x !== 'number' || isNaN(v.x) || v.x < 20 || v.x > 220) v.x = 80 + Math.random()*60;
+                if (typeof v.x !== 'number' || isNaN(v.x)) v.x = 80;
                 if (!SPRITES[v.species]) v.species = 'CAT';
                 if (!PET_PALETTES[v.color]) v.color = 'PINK';
                 v.y = 160;
                 v.targetY = 160;
-                if (typeof v.targetX !== 'number' || isNaN(v.targetX)) v.targetX = 80 + Math.random()*60;
-                if (typeof v.pauseTimer !== 'number' || isNaN(v.pauseTimer)) v.pauseTimer = 0;
-                if (typeof v.dir !== 'number' || isNaN(v.dir)) v.dir = 1;
+                if (typeof v.targetX !== 'number' || isNaN(v.targetX)) v.targetX = 100 + Math.random()*40;
+                v.x = Math.max(24, Math.min(150, v.x));
             });
 
-            // 1. Movimiento solo horizontal en el piso
+            // Movimiento solo horizontal suave
             list.forEach(v => {
                 if (v.pauseTimer > 0) {
                     v.pauseTimer--;
                 } else {
                     const dx = v.targetX - v.x;
-                    if (Math.abs(dx) < 3) {
-                        v.pauseTimer = Math.floor(50 + Math.random() * 80);
-                        v.targetX = Math.floor(35 + Math.random() * 150);
+                    if (Math.abs(dx) < 2) {
+                        v.pauseTimer = 60 + Math.floor(Math.random()*60);
+                        v.targetX = 35 + Math.floor(Math.random()*110);
                     } else {
                         v.dir = dx > 0 ? 1 : -1;
-                        v.x += (dx > 0 ? 0.6 : -0.6);
+                        v.x += dx > 0 ? 0.5 : -0.5;
                     }
                 }
-                v.x = Math.max(24, Math.min(190, v.x));
-                v.y = 160;
             });
 
-            // 2. Detectar si 2 o más visitas están cerca para interactuar entre ellas
-            let pairedInteraction = false;
-            let pairX1 = 0, pairX2 = 0, pairY = 0;
-            if (list.length >= 2) {
-                for (let i = 0; i < list.length; i++) {
-                    for (let j = i + 1; j < list.length; j++) {
-                        const v1 = list[i];
-                        const v2 = list[j];
-                        const dist = Math.hypot(v1.x - v2.x, v1.y - v2.y);
-                        if (dist < 55) {
-                            pairedInteraction = true;
-                            pairX1 = Math.min(v1.x, v2.x);
-                            pairX2 = Math.max(v1.x, v2.x);
-                            pairY = (v1.y + v2.y) / 2;
-                            v1.dir = (v2.x > v1.x) ? 1 : -1;
-                            v2.dir = (v1.x > v2.x) ? 1 : -1;
-                        }
-                    }
-                }
-            }
-
-            // 3. Dibujar sprites de las visitas - FIX altura gigante
+            // Dibujar cada visita chiquita (escala 2.2) en el piso
             list.forEach((v, idx) => {
-                const vFrames = (SPRITES[v.species] && SPRITES[v.species][0]) ? SPRITES[v.species] : SPRITES.CAT;
-                const colorKey = PET_PALETTES[v.color] ? v.color : 'PINK';
-                let vStep = Math.floor((uiState.frame + idx * 8) / 18) % 2;
-                if (vStep >= vFrames.length) vStep = 0;
-                let vJump = 0;
-
-                if (pairedInteraction) {
-                    vJump = Math.abs(Math.sin((uiState.frame + idx * 6) * 0.24)) * 9;
-                    vStep = Math.floor(uiState.frame / 7) % 2;
-                    if (vStep >= vFrames.length) vStep = 0;
-                }
-
-                const vy = Math.max(110, Math.min(170, Math.floor((v.y || 165) - 34 - vJump)));
-                const vx = Math.max(20, Math.min(200, Math.floor(v.x || 80)));
+                const frames = SPRITES[v.species] || SPRITES.CAT;
+                const col = PET_PALETTES[v.color] ? v.color : 'PINK';
+                const step = uiState.frame % 30 < 15 ? 0 : 1;
+                const vx = Math.floor(v.x);
+                const vy = 126;
                 ctx.save();
-                drawSpriteWithPalette(vFrames[vStep], vx, vy, 3, v.dir < 0, colorKey);
+                drawSpriteWithPalette(frames[step], vx, vy, 2.2, v.dir < 0, col);
                 ctx.restore();
 
-                // Dibujar sombrerito centrado sobre la cabeza de la mascota (ancho = 36px, centro = v.x + 18)
                 if (v.hat) {
-                    const hatObj = HAT_CATALOG.find(h => h.id === v.hat);
-                    if (hatObj) {
+                    const h = HAT_CATALOG.find(x => x.id === v.hat);
+                    if (h) {
                         ctx.save();
-                        ctx.fillStyle = '#ffffff';
-                        ctx.globalAlpha = 1.0;
-                        ctx.font = '14px sans-serif';
+                        ctx.font = '12px sans-serif';
                         ctx.textAlign = 'center';
-                        ctx.fillText(hatObj.icon, v.x + 18, vy + 2);
+                        ctx.fillText(h.icon, vx + 13, vy);
                         ctx.restore();
                     }
                 }
-
-                // Nombre de la visita centrado sobre la mascota
                 ctx.save();
                 ctx.fillStyle = '#ffffff';
-                ctx.globalAlpha = 1.0;
-                ctx.font = '800 9px "Nunito", sans-serif';
+                ctx.font = '800 8px "Nunito", sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(v.name, v.x + 18, vy - 4);
+                ctx.fillText(v.name, vx + 13, vy - 6);
                 ctx.restore();
             });
-
-            // 4. Efectos visuales de animación interactiva entre las visitas
-            if (pairedInteraction) {
-                ctx.save();
-                ctx.fillStyle = '#ffffff';
-                ctx.textAlign = 'center';
-
-                const interactType = Math.floor(uiState.frame / 50) % 3;
-                if (interactType === 0) {
-                    // Pelota compartida rebotando de una visita a la otra
-                    const ballProgress = Math.abs(Math.sin(uiState.frame * 0.12));
-                    const ballX = pairX1 + 14 + ballProgress * (pairX2 - pairX1);
-                    const ballY = pairY - 12 - Math.sin(ballProgress * Math.PI) * 16;
-                    ctx.font = '14px sans-serif';
-                    ctx.fillText('⚽', ballX, ballY);
-                } else if (interactType === 1) {
-                    // Baile con notas musicales flotantes
-                    ctx.font = '12px sans-serif';
-                    ctx.fillText('🎵', pairX1 + 18, pairY - 26 - (uiState.frame % 10));
-                    ctx.fillText('🎶', pairX2 + 8, pairY - 22 - ((uiState.frame + 5) % 10));
-                } else {
-                    // Emojis de charla y chisme
-                    const emojis = ['💬', '❤️', '🎉', '🍦', '✨', '⭐'];
-                    const eIndex = Math.floor(uiState.frame / 18) % emojis.length;
-                    ctx.font = '14px sans-serif';
-                    ctx.fillText(emojis[eIndex], (pairX1 + pairX2) / 2 + 14, pairY - 24);
-                }
-                ctx.restore();
-            }
         }
 
         function drawSpriteWithPalette(grid, x, y, scale = 3, flipX = false, colorKey = 'PINK') {
