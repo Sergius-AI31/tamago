@@ -85,6 +85,9 @@
             height: 100%;
             object-fit: contain;
         }
+        #setupPetPreview {
+            image-rendering: pixelated;
+        }
         .crt-overlay {
             background: linear-gradient(
                 rgba(18, 16, 16, 0) 50%,
@@ -103,11 +106,6 @@
         }
         footer.action-dock {
             padding-bottom: max(2rem, env(safe-area-inset-bottom));
-        }
-        .species-card.selected {
-            border-color: #fbbf24;
-            background-color: rgba(251, 191, 36, 0.18);
-            transform: translateY(-2px);
         }
         .color-dot.selected {
             transform: scale(1.22);
@@ -184,13 +182,17 @@
         <section class="bg-slate-900/90 border-b border-slate-800 px-3 py-1.5 grid grid-cols-4 gap-2 shrink-0 z-20">
             <!-- Hambre y Sed (Rojo para Hambre, Azul para Sed) -->
             <div aria-label="Hambre y sed" class="bg-slate-800/90 rounded-xl px-2 py-1 border border-rose-500/30">
-                <div class="flex justify-between items-center text-[10px] font-extrabold text-rose-300 mb-0.5">
-                    <span aria-hidden="true" title="Hambre"><i class="fa-solid fa-burger"></i></span>
-                    <span id="statHungerTxt">90%</span>
+                <div class="flex justify-between items-center text-[9px] font-extrabold mb-0.5">
+                    <span class="text-rose-300" title="Hambre"><i class="fa-solid fa-burger"></i> <span id="statHungerTxt">75%</span></span>
+                    <span class="text-sky-300" title="Sed"><i class="fa-solid fa-droplet"></i> <span id="statThirstTxt">100%</span></span>
                 </div>
-                <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden flex">
-                    <div id="statHungerBar" class="h-full bg-rose-500 transition-all duration-300" style="width: 75%"></div>
-                    <div id="statThirstBar" class="h-full bg-sky-400 transition-all duration-300" style="width: 15%"></div>
+                <div class="space-y-0.5">
+                    <div class="w-full h-1 bg-slate-950 rounded-full overflow-hidden">
+                        <div id="statHungerBar" class="h-full bg-rose-500 rounded-full transition-all duration-300" style="width: 75%"></div>
+                    </div>
+                    <div class="w-full h-1 bg-slate-950 rounded-full overflow-hidden">
+                        <div id="statThirstBar" class="h-full bg-sky-400 rounded-full transition-all duration-300" style="width: 100%"></div>
+                    </div>
                 </div>
             </div>
 
@@ -330,7 +332,7 @@
              MODAL 1: ADOPCIÓN INICIAL (ELEGIR MASCOTA, COLOR Y NOMBRE)
              ========================================================== -->
         <div id="setupModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-4 z-50">
-            <div class="bg-slate-900 border-2 border-amber-400/50 rounded-3xl max-w-sm w-full p-5 shadow-2xl text-white">
+            <div class="bg-slate-900 border-2 border-amber-400/50 rounded-3xl max-w-sm max-h-[92dvh] w-full p-5 shadow-2xl text-white overflow-y-auto no-scrollbar">
                 <div class="text-center mb-4">
                     <span class="text-3xl">🥚✨</span>
                     <h2 class="pixel-font text-xs text-amber-300 mt-2">¡ELIGE TU TAMAGOTCHI!</h2>
@@ -344,50 +346,36 @@
                         class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-800 border border-slate-600 text-white font-extrabold text-sm focus:outline-none focus:border-amber-400">
                 </div>
 
-                <!-- Especie -->
+                <!-- Selector de especie tipo carrusel -->
                 <div class="mb-3">
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Tipo de mascota:</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="selectSetupSpecies('CAT')" data-species="CAT" class="species-card selected p-2.5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 flex items-center gap-2.5 text-left transition">
-                            <span class="text-2xl">🐱</span>
-                            <div>
-                                <div class="font-extrabold text-xs text-white">Nekotchi</div>
-                                <div class="text-[10px] text-slate-400">Gatito tierno</div>
-                            </div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5 text-center">Tipo de mascota:</label>
+                    <div class="flex items-center justify-between gap-2">
+                        <button type="button" onclick="moveSetupSpecies(-1)" aria-label="Mascota anterior" class="h-10 w-10 shrink-0 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-amber-300 text-xl transition">
+                            <i class="fa-solid fa-chevron-left"></i>
                         </button>
-                        <button type="button" onclick="selectSetupSpecies('PUPPY')" data-species="PUPPY" class="species-card p-2.5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 flex items-center gap-2.5 text-left transition">
-                            <span class="text-2xl">🐶</span>
-                            <div>
-                                <div class="font-extrabold text-xs text-white">Inutchi</div>
-                                <div class="text-[10px] text-slate-400">Perrito leal</div>
-                            </div>
-                        </button>
-                        <button type="button" onclick="selectSetupSpecies('BUNNY')" data-species="BUNNY" class="species-card p-2.5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 flex items-center gap-2.5 text-left transition">
-                            <span class="text-2xl">🐰</span>
-                            <div>
-                                <div class="font-extrabold text-xs text-white">Usatchi</div>
-                                <div class="text-[10px] text-slate-400">Conejito saltarín</div>
-                            </div>
-                        </button>
-                        <button type="button" onclick="selectSetupSpecies('DINO')" data-species="DINO" class="species-card p-2.5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 flex items-center gap-2.5 text-left transition">
-                            <span class="text-2xl">🦖</span>
-                            <div>
-                                <div class="font-extrabold text-xs text-white">Dinotchi</div>
-                                <div class="text-[10px] text-slate-400">Dino amigable</div>
-                            </div>
+                        <div class="min-w-0 flex-1 text-center">
+                            <canvas id="setupPetPreview" width="160" height="112" aria-label="Vista previa de la mascota adulta" class="mx-auto h-28 w-40"></canvas>
+                            <div id="setupSpeciesName" class="font-extrabold text-sm text-white">Nekotchi</div>
+                            <div id="setupSpeciesDescription" class="text-[10px] text-slate-400">Gatito tierno</div>
+                            <div id="setupSpeciesPosition" class="mt-1 text-[9px] font-bold text-amber-300">1 / 8</div>
+                        </div>
+                        <button type="button" onclick="moveSetupSpecies(1)" aria-label="Siguiente mascota" class="h-10 w-10 shrink-0 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-amber-300 text-xl transition">
+                            <i class="fa-solid fa-chevron-right"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Color favorito -->
                 <div class="mb-5">
-                    <label class="block text-xs font-bold text-slate-300 mb-2">Color de tu Tamagotchi:</label>
-                    <div class="flex items-center justify-around py-1">
-                        <button type="button" onclick="selectSetupColor('PINK')" data-color="PINK" class="color-dot selected w-9 h-9 rounded-full bg-pink-400 border-2 border-pink-200 transition"></button>
-                        <button type="button" onclick="selectSetupColor('SKY')" data-color="SKY" class="color-dot w-9 h-9 rounded-full bg-sky-400 border-2 border-sky-200 transition"></button>
-                        <button type="button" onclick="selectSetupColor('MINT')" data-color="MINT" class="color-dot w-9 h-9 rounded-full bg-emerald-400 border-2 border-emerald-200 transition"></button>
-                        <button type="button" onclick="selectSetupColor('SUNNY')" data-color="SUNNY" class="color-dot w-9 h-9 rounded-full bg-amber-400 border-2 border-amber-200 transition"></button>
-                        <button type="button" onclick="selectSetupColor('LAVENDER')" data-color="LAVENDER" class="color-dot w-9 h-9 rounded-full bg-purple-400 border-2 border-purple-200 transition"></button>
+                    <label class="block text-xs font-bold text-slate-300 mb-2 text-center">Color de tu Tamagotchi:</label>
+                    <div class="flex flex-wrap items-center justify-center gap-3 py-1">
+                        <button type="button" onclick="selectSetupColor('PINK')" data-color="PINK" aria-label="Rosa" title="Rosa" class="color-dot selected h-8 w-8 rounded-full bg-pink-400 border-2 border-pink-200 transition"></button>
+                        <button type="button" onclick="selectSetupColor('SKY')" data-color="SKY" aria-label="Azul" title="Azul" class="color-dot h-8 w-8 rounded-full bg-sky-400 border-2 border-sky-200 transition"></button>
+                        <button type="button" onclick="selectSetupColor('MINT')" data-color="MINT" aria-label="Verde menta" title="Verde menta" class="color-dot h-8 w-8 rounded-full bg-emerald-400 border-2 border-emerald-200 transition"></button>
+                        <button type="button" onclick="selectSetupColor('SUNNY')" data-color="SUNNY" aria-label="Amarillo" title="Amarillo" class="color-dot h-8 w-8 rounded-full bg-amber-400 border-2 border-amber-200 transition"></button>
+                        <button type="button" onclick="selectSetupColor('LAVENDER')" data-color="LAVENDER" aria-label="Lavanda" title="Lavanda" class="color-dot h-8 w-8 rounded-full bg-purple-400 border-2 border-purple-200 transition"></button>
+                        <button type="button" onclick="selectSetupColor('BLACK')" data-color="BLACK" aria-label="Negro" title="Negro" class="color-dot h-8 w-8 rounded-full bg-slate-950 border-2 border-slate-500 transition"></button>
+                        <button type="button" onclick="selectSetupColor('WHITE')" data-color="WHITE" aria-label="Blanco" title="Blanco" class="color-dot h-8 w-8 rounded-full bg-white border-2 border-slate-300 transition"></button>
                     </div>
                 </div>
 
@@ -422,7 +410,7 @@
                 </div>
                 <div class="space-y-2.5 text-xs leading-relaxed text-slate-300">
                     <p>🎨 <b>Colores Guía para Niños:</b> Cuando tu mascota necesita algo, arriba aparece un botón del <b>mismo color y dibujo</b> que el botón de abajo (y el botón brillará).</p>
-                    <p>🌳 <b>Mundo Tamagotchi (Paseo / Casa):</b> Tu mascota puede pasear en el parque con flores, mariposas y amigos visitantes, o entrar a su cuarto.</p>
+                    <p>🌳 <b>Mundo Tamagotchi (Paseo / Casa):</b> Tu mascota puede pasear en el parque y recibir visitas ocasionales de amigos registrados con QR.</p>
                     <p>🐢 <b>Ritmo Tranquilo y Hora Real:</b> Las necesidades bajan despacito y el tiempo sigue contando aunque cierres la app en el celular.</p>
                     <p>🎮 <b>Minijuegos Progresivos:</b> Empiezan muy despacito en Nivel 1 y van subiendo poco a poco.</p>
                 </div>
@@ -431,67 +419,46 @@
         </div>
 
         <!-- ==========================================================
-             MODAL 4: SISTEMA MULTIJUGADOR OFFLINE POR CÓDIGO QR
+             MODAL 4: REGISTRO DE AMIGOS POR CÓDIGO QR
              ========================================================== -->
         <div id="qrTravelModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
             <div class="bg-slate-900 border border-amber-400/50 rounded-3xl max-w-sm w-full p-4 shadow-2xl text-slate-200 flex flex-col max-h-[92dvh] overflow-hidden">
                 <div class="flex justify-between items-center pb-2 border-b border-slate-800">
                     <div class="flex items-center gap-2">
-                        <span class="text-xl">🧳</span>
-                        <h2 class="pixel-font text-[10px] text-amber-300">VISITAS & PASAPORTE QR</h2>
+                        <span class="text-xl">👥</span>
+                        <h2 class="pixel-font text-[10px] text-amber-300">DIRECTORIO DE AMIGOS</h2>
                     </div>
                     <button onclick="closeQRModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
                 </div>
 
-                <!-- Pestañas de Navegación del Modal QR -->
                 <div class="flex bg-slate-950 p-1 rounded-2xl my-3 border border-slate-800 gap-1 text-[10px] font-bold">
-                    <button onclick="switchQRTab('MY_PASSPORT')" id="tabBtnPassport" class="flex-1 py-1.5 rounded-xl bg-amber-500 text-slate-950 transition">🧳 Mi QR</button>
-                    <button onclick="switchQRTab('SCAN_VISIT')" id="tabBtnScan" class="flex-1 py-1.5 rounded-xl text-slate-400 transition">📷 Escanear</button>
-                    <button onclick="switchQRTab('VISITORS_LIST')" id="tabBtnList" class="flex-1 py-1.5 rounded-xl text-slate-400 transition">👥 Visitas (<span id="qrVisitorCount">0</span>/3)</button>
+                    <button onclick="switchQRTab('MY_PASSPORT')" id="tabBtnPassport" class="flex-1 py-1.5 rounded-xl bg-amber-500 text-slate-950 transition">✨ Mi QR</button>
+                    <button onclick="switchQRTab('SCAN_VISIT')" id="tabBtnScan" class="flex-1 py-1.5 rounded-xl text-slate-400 transition">📷 Registrar amigo</button>
                 </div>
 
-                <!-- Contenido Dinámico de las Pestañas -->
                 <div class="flex-1 overflow-y-auto no-scrollbar space-y-3">
-                    <!-- Tab 1: Mi Pasaporte (Generar QR de mi mascota) -->
                     <div id="qrTabPassport" class="space-y-3">
                         <div class="text-center bg-slate-800/80 p-3 rounded-2xl border border-slate-700">
-                            <p class="text-xs font-extrabold text-amber-300 mb-1">¡Manda a tu Tamagotchi de visita!</p>
-                            <p class="text-[10px] text-slate-400">Muestra este código QR a un amigo para que lo escanee con su cámara y tu mascota aparezca en su pantalla.</p>
+                            <p class="text-xs font-extrabold text-amber-300 mb-1">Comparte tu Tamagotchi</p>
+                            <p class="text-[10px] text-slate-400">Tu amigo puede escanear este QR para guardar su apariencia, edad y etapa en su directorio.</p>
                             <div class="flex justify-center my-3 bg-white p-3 rounded-2xl w-fit mx-auto shadow-inner" id="myQrContainer"></div>
-                            <div id="tripStatusBanner" class="text-[11px] font-extrabold text-sky-300"></div>
                         </div>
                     </div>
 
-                    <!-- Tab 2: Escanear Visita (Cámara para leer QR del amigo) -->
                     <div id="qrTabScan" class="hidden space-y-3">
                         <div class="bg-slate-800/80 p-3 rounded-2xl border border-slate-700 text-center">
-                            <p class="text-xs font-extrabold text-amber-300 mb-1">Escanear QR de un amigo</p>
-                            <p class="text-[10px] text-slate-400 mb-2">Apunta la cámara al código QR de la mascota que te va a visitar (Máximo 3 visitas a la vez).</p>
+                            <p class="text-xs font-extrabold text-amber-300 mb-1">Registrar amigo</p>
+                            <p class="text-[10px] text-slate-400 mb-2">Escanea el QR de su Tamagotchi para agregarlo a tu perfil.</p>
                             <div id="qrReaderContainer" class="w-full h-48 bg-slate-950 rounded-2xl overflow-hidden border border-slate-700 flex items-center justify-center text-xs text-slate-500">
                                 Cámara lista...
                             </div>
                             <div class="mt-3 pt-2 border-t border-slate-700/60">
-                                <label class="block text-[9px] text-slate-400 mb-1">¿Sin cámara? Pega el código del QR aquí:</label>
+                                <label class="block text-[9px] text-slate-400 mb-1">¿Sin cámara? Pega el código QR aquí:</label>
                                 <div class="flex gap-1.5">
-                                    <input id="manualQrInput" type="text" placeholder="Pega el código TAMA_V1..." class="flex-1 px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-[10px] text-white">
+                                    <input id="manualQrInput" type="text" placeholder="Pega el código TAMA_V2..." class="flex-1 px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-[10px] text-white">
                                     <button onclick="processManualQRInput()" class="px-3 py-1.5 bg-emerald-600 text-white font-extrabold rounded-xl text-[10px]">Cargar</button>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Tab 3: Visitas Activas (Hasta 3) -->
-                    <div id="qrTabVisitors" class="hidden space-y-3">
-                        <div class="text-xs font-extrabold text-amber-300 flex justify-between items-center">
-                            <span>Mascotas Hospedadas actualmente:</span>
-                            <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded-full text-slate-300 border border-slate-700"><span id="qrListCount">0</span>/3</span>
-                        </div>
-                        <div id="activeVisitorsContainer" class="space-y-2"></div>
-                        <div id="returnQrContainer" class="hidden bg-slate-800/90 p-3 rounded-2xl border border-emerald-500/40 text-center space-y-2">
-                            <p class="text-xs font-extrabold text-emerald-300">¡Boleto de Regreso Generado! 🎟️</p>
-                            <p class="text-[10px] text-slate-300">Muestra este QR a tu amigo para que lo escanee y reciba a su mascota con su regalo.</p>
-                            <div class="flex justify-center bg-white p-3 rounded-2xl w-fit mx-auto shadow-inner" id="returnQrGraphic"></div>
-                            <button onclick="closeReturnQRView()" class="w-full py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-extrabold">Listo</button>
                         </div>
                     </div>
                 </div>
@@ -507,10 +474,14 @@
          * 1. CONFIGURACIÓN DE ESPECIES, COLORES Y ALIMENTOS
          **************************************************************/
         const SPECIES_INFO = {
-            CAT:   { name: 'Nekotchi', emoji: '🐱' },
-            PUPPY: { name: 'Inutchi',  emoji: '🐶' },
-            BUNNY: { name: 'Usatchi',  emoji: '🐰' },
-            DINO:  { name: 'Dinotchi', emoji: '🦖' }
+            CAT:      { name: 'Nekotchi',  emoji: '🐱', description: 'Gatito tierno' },
+            PUPPY:    { name: 'Inutchi',   emoji: '🐶', description: 'Perrito leal' },
+            BUNNY:    { name: 'Usatchi',   emoji: '🐰', description: 'Conejito saltarín' },
+            DINO:     { name: 'Dinotchi',  emoji: '🦖', description: 'Dino amigable' },
+            HAMSTER:  { name: 'Hamstchi',  emoji: '🐹', description: 'Hámster curioso' },
+            CHICKEN:  { name: 'Pollotchi', emoji: '🐥', description: 'Pollito alegre' },
+            RACCOON:  { name: 'Mapatchi',  emoji: '🦝', description: 'Mapache travieso' },
+            LION:     { name: 'Leontchi',  emoji: '🦁', description: 'León valiente' }
         };
 
         const STAGE_NAMES = {
@@ -526,7 +497,9 @@
             SKY:      { body: '#38bdf8', dark: '#0369a1', light: '#bae6fd', cheek: '#f472b6' },
             MINT:     { body: '#34d399', dark: '#047857', light: '#a7f3d0', cheek: '#fb7185' },
             SUNNY:    { body: '#fbbf24', dark: '#b45309', light: '#fef3c7', cheek: '#f43f5e' },
-            LAVENDER: { body: '#c084fc', dark: '#6b21a8', light: '#f3e8ff', cheek: '#fb7185' }
+            LAVENDER: { body: '#c084fc', dark: '#6b21a8', light: '#f3e8ff', cheek: '#fb7185' },
+            BLACK:    { body: '#475569', dark: '#1e293b', light: '#94a3b8', cheek: '#fb7185' },
+            WHITE:    { body: '#e2e8f0', dark: '#64748b', light: '#ffffff', cheek: '#fb7185' }
         };
 
         const FOOD_CATALOG = [
@@ -1072,6 +1045,126 @@
                     "............"
                 ]
             ],
+            HAMSTER: [
+                [
+                    "............",
+                    "...DD..DD...",
+                    "..DBBDDBBD..",
+                    ".DBBBBBBBBD.",
+                    "DBBBBBBBBBBD",
+                    "DBKBBBBBBKBD",
+                    "DCLBBMMBLCD.",
+                    ".DBBLLLLBBD.",
+                    ".DBBBBBBBBD.",
+                    "..DDBBBBDD..",
+                    "...DD..DD...",
+                    "............"
+                ],
+                [
+                    "............",
+                    "...DD..DD...",
+                    "..DBBDDBBD..",
+                    ".DBBBBBBBBD.",
+                    "DBBBBBBBBBBD",
+                    "DBKBBBBBBKBD",
+                    "DCLBBMMBLCD.",
+                    ".DBBLLLLBBD.",
+                    ".DBBBBBBBBD.",
+                    "..DDBBBBDD..",
+                    "...DD..DD...",
+                    "............"
+                ]
+            ],
+            CHICKEN: [
+                [
+                    "....RRRR....",
+                    "...RRRRRR...",
+                    "..DDDDDDDD..",
+                    ".DBBBBBBBBD.",
+                    "DBKBBBBBKBDD",
+                    "DBBBBOOBBBBD",
+                    "DBBBBBBBBBBD",
+                    ".DBBBBBBBBD.",
+                    "..DD....DD..",
+                    "...OO..OO...",
+                    "............",
+                    "............"
+                ],
+                [
+                    "............",
+                    "....RRRR....",
+                    "...RRRRRR...",
+                    "..DDDDDDDD..",
+                    ".DBBBBBBBBD.",
+                    "DBKBBBBBKBDD",
+                    "DBBBBOOBBBBD",
+                    "DBBBBBBBBBBD",
+                    ".DBBBBBBBBD.",
+                    "..DD....DD..",
+                    "...OO..OO...",
+                    "............"
+                ]
+            ],
+            RACCOON: [
+                [
+                    "..DD....DD..",
+                    ".DBBD..DBBD.",
+                    ".DBBBBBBBBD.",
+                    "DBBBBBBBBBBD",
+                    "DBAAKAAAKABD",
+                    ".DBBBBBBBBD.",
+                    ".DCBBBBBBCD.",
+                    ".DBLLLLLLBD.",
+                    ".DBBBBBBBBD.",
+                    "..DDBBBBDD..",
+                    "...DD..DD...",
+                    "............"
+                ],
+                [
+                    "..DD....DD..",
+                    ".DBBD..DBBD.",
+                    ".DBBBBBBBBD.",
+                    "DBBBBBBBBBBD",
+                    "DBAAKAAAKABD",
+                    ".DBBBBBBBBD.",
+                    ".DCBBBBBBCD.",
+                    ".DBLLLLLLBD.",
+                    ".DBBBBBBBBD.",
+                    "..DDBBBBDD..",
+                    "...DD..DD...",
+                    "............"
+                ]
+            ],
+            LION: [
+                [
+                    "...YY..YY...",
+                    "..YYYYYYYY..",
+                    ".YYYYYYYYYY.",
+                    "YYDDDDDDDDYY",
+                    "YYDBBBBBBDYY",
+                    "YYDBKBBKBDYY",
+                    "YYDCBBBBCDYY",
+                    "YYDBLLLLBDYY",
+                    ".YYDBBBBDYY.",
+                    "..YYYYYYYY..",
+                    "...DD..DD...",
+                    "............"
+                ],
+                [
+                    "...YY..YY...",
+                    "..YYYYYYYY..",
+                    ".YYYYYYYYYY.",
+                    "YYDDDDDDDDYY",
+                    "YYDBBBBBBDYY",
+                    "YYDBKBBKBDYY",
+                    "YYDCBBBBCDYY",
+                    "YYDBLLLLBDYY",
+                    ".YYDBBBBDYY.",
+                    "..YYYYYYYY..",
+                    "...DD..DD...",
+                    "............"
+                ]
+            ],
             HEART: [
                 "..RR..RR..",
                 ".RRRRRRRR.",
@@ -1102,6 +1195,201 @@
             color: 'PINK'
         };
 
+        function getSpeciesFrames(species, stage) {
+            if (stage === 'EGG') return SPRITES.EGG;
+            if (stage === 'BABY') {
+                const babySprite = SPRITES['BABY_' + species];
+                if (babySprite) return babySprite;
+                const babyFallback = {
+                    HAMSTER: 'BABY_CAT',
+                    CHICKEN: 'BABY_DINO',
+                    RACCOON: 'BABY_CAT',
+                    LION: 'BABY_PUPPY'
+                }[species] || 'BABY_CAT';
+                return SPRITES[babyFallback];
+            }
+            return SPRITES[species] || SPRITES.CAT;
+        }
+
+        function getPetMovementScale() {
+            return { BABY: 3, CHILD: 4, TEEN: 4, ADULT: 5 }[pet?.stage] || 4;
+        }
+
+        function getDecorAtPosition(decor) {
+            const position = pet?.decorPositions?.[decor.id];
+            return position ? { ...decor, x: position.x, y: position.y } : decor;
+        }
+
+        function getDecorCollisionBounds(decor) {
+            const d = getDecorAtPosition(decor);
+            if (d.id === 'ball') return { left: d.x - 9, right: d.x + 9, top: d.y - 20, bottom: d.y + 4 };
+            if (d.id === 'music') return { left: d.x - 18, right: d.x + 18, top: d.y + 4, bottom: d.y + 31 };
+            if (d.id === 'teddy') return { left: d.x - 13, right: d.x + 13, top: d.y - 20, bottom: d.y + 5 };
+            if (d.id === 'trampoline') return { left: d.x - 27, right: d.x + 27, top: d.y - 6, bottom: d.y + 15 };
+            if (d.id === 'ducky') return { left: d.x - 22, right: d.x + 22, top: d.y - 18, bottom: d.y + 7 };
+            return null;
+        }
+
+        function getCurrentDecorObstacles(ignoreDecorId = null) {
+            if (!pet || !Array.isArray(pet.placedDecor)) return [];
+            const place = uiState.location === 'HOME' ? 'HOME' : 'PARK';
+            return DECOR_CATALOG
+                .filter(d => d.place === place && pet.placedDecor.includes(d.id) && !['ball', 'balloon'].includes(d.id))
+                .filter(d => !(d.id === ignoreDecorId && ['trampoline', 'ducky'].includes(d.id)))
+                .map(decor => ({ decor, bounds: getDecorCollisionBounds(decor) }))
+                .filter(obstacle => obstacle.bounds)
+                .concat(uiState.location === 'PARK'
+                    ? [{ decor: { id: 'garden' }, bounds: { left: 105, right: 133, top: 125, bottom: 140 } }]
+                    : []);
+        }
+
+        function isPetPositionBlocked(x, floorY, scale, obstacles) {
+            const spriteWidth = getCurrentPetFrames()[0][0].length * scale;
+            const footTop = floorY - scale * 3;
+            return obstacles.some(({ bounds }) =>
+                x < bounds.right &&
+                x + spriteWidth > bounds.left &&
+                footTop < bounds.bottom &&
+                floorY > bounds.top
+            );
+        }
+
+        function findPetNavigationPath(startX, startY, targetX, targetY, scale, obstacles) {
+            const spriteWidth = getCurrentPetFrames()[0][0].length * scale;
+            const maxX = 240 - spriteWidth - 8;
+            const minY = uiState.location === 'HOME' ? 154 : 146;
+            const nodes = [];
+            for (let y = minY; y <= 202; y += 8) {
+                for (let x = 8; x <= maxX; x += 8) {
+                    if (!isPetPositionBlocked(x, y, scale, obstacles)) nodes.push({ x, y });
+                }
+            }
+            const nearestNode = (x, y) => nodes.reduce((nearest, node) =>
+                !nearest || Math.hypot(node.x - x, node.y - y) < Math.hypot(nearest.x - x, nearest.y - y) ? node : nearest, null);
+            const start = nearestNode(startX, startY);
+            if (!start) return { path: [], destination: null };
+
+            const key = node => `${node.x},${node.y}`;
+            const queue = [start];
+            const previous = new Map([[key(start), null]]);
+            const directions = [[-8, 0], [8, 0], [0, -8], [0, 8], [-8, -8], [8, -8], [-8, 8], [8, 8]];
+            for (let index = 0; index < queue.length; index++) {
+                const current = queue[index];
+                for (const [dx, dy] of directions) {
+                    const next = { x: current.x + dx, y: current.y + dy };
+                    const nextKey = key(next);
+                    if (next.x < 8 || next.x > maxX || next.y < minY || next.y > 202 ||
+                        previous.has(nextKey) || isPetPositionBlocked(next.x, next.y, scale, obstacles)) continue;
+                    if (dx !== 0 && dy !== 0 &&
+                        (isPetPositionBlocked(current.x + dx, current.y, scale, obstacles) ||
+                            isPetPositionBlocked(current.x, current.y + dy, scale, obstacles))) continue;
+                    previous.set(nextKey, key(current));
+                    queue.push(next);
+                }
+            }
+
+            const destination = queue.reduce((nearest, node) =>
+                !nearest || Math.hypot(node.x - targetX, node.y - targetY) < Math.hypot(nearest.x - targetX, nearest.y - targetY)
+                    ? node
+                    : nearest, null);
+            if (!destination) return { path: [], destination: null };
+            const path = [];
+            let currentKey = key(destination);
+            while (currentKey !== key(start)) {
+                const [x, y] = currentKey.split(',').map(Number);
+                path.unshift({ x, y });
+                currentKey = previous.get(currentKey);
+            }
+            path.unshift(start);
+            return { path, destination };
+        }
+
+        function movePetToward(targetX, targetY, speed, scale, ignoreDecorId = null) {
+            const spriteWidth = getCurrentPetFrames()[0][0].length * scale;
+            const maxX = 240 - spriteWidth - 8;
+            const minY = uiState.location === 'HOME' ? 154 : 146;
+            targetX = Math.max(8, Math.min(maxX, targetX));
+            targetY = Math.max(minY, Math.min(202, targetY));
+            const target = uiState.navigationTarget;
+            if (!target || Math.abs(target.x - targetX) > 2 || Math.abs(target.y - targetY) > 2) {
+                uiState.navigationPath = [];
+                uiState.navigationTarget = { x: targetX, y: targetY };
+            }
+
+            const obstacles = getCurrentDecorObstacles(ignoreDecorId);
+            const canMoveTo = (x, y) => !isPetPositionBlocked(x, y, scale, obstacles);
+            let waypoint = uiState.navigationPath[0] || { x: targetX, y: targetY };
+            let dx = waypoint.x - uiState.petX;
+            let dy = waypoint.y - uiState.petY;
+            let distance = Math.hypot(dx, dy);
+            if (uiState.navigationPath.length && distance <= speed + 1) {
+                uiState.navigationPath.shift();
+                waypoint = uiState.navigationPath[0] || { x: targetX, y: targetY };
+                dx = waypoint.x - uiState.petX;
+                dy = waypoint.y - uiState.petY;
+                distance = Math.hypot(dx, dy);
+            }
+            if (distance < 1) return false;
+
+            let nextX = uiState.petX + (dx / distance) * Math.min(speed, distance);
+            let nextY = uiState.petY + (dy / distance) * Math.min(speed, distance);
+            if (!canMoveTo(nextX, nextY)) {
+                const route = findPetNavigationPath(uiState.petX, uiState.petY, targetX, targetY, scale, obstacles);
+                uiState.navigationPath = route.path;
+                if (!route.destination) {
+                    uiState.navigationTarget = null;
+                    return false;
+                }
+                if (Math.hypot(route.destination.x - targetX, route.destination.y - targetY) > 2) {
+                    targetX = route.destination.x;
+                    targetY = route.destination.y;
+                    uiState.navigationTarget = { x: targetX, y: targetY };
+                    uiState.targetX = targetX;
+                    uiState.targetY = targetY;
+                }
+                if (!uiState.navigationPath.length) return false;
+                waypoint = uiState.navigationPath[0];
+                dx = waypoint.x - uiState.petX;
+                dy = waypoint.y - uiState.petY;
+                distance = Math.hypot(dx, dy);
+                nextX = uiState.petX + (dx / distance) * Math.min(speed, distance);
+                nextY = uiState.petY + (dy / distance) * Math.min(speed, distance);
+                if (!canMoveTo(nextX, nextY)) return false;
+            }
+
+            const isPlayingWithBall = uiState.toyTimer > 0 && uiState.activeToy?.id === 'ball';
+            const ball = !isPlayingWithBall && pet.placedDecor?.includes('ball')
+                ? DECOR_CATALOG.find(d => d.id === 'ball')
+                : null;
+            if (ball) {
+                const bounds = getDecorCollisionBounds(ball);
+                const spriteHeight = scale * 3;
+                const footTop = nextY - spriteHeight;
+                const ballTouched = nextX < bounds.right && nextX + spriteWidth > bounds.left &&
+                    footTop < bounds.bottom && nextY > bounds.top;
+                if (ballTouched) {
+                    const direction = dx === 0 ? (uiState.petX + spriteWidth / 2 < (bounds.left + bounds.right) / 2 ? -1 : 1) : Math.sign(dx);
+                    const position = getDecorAtPosition(ball);
+                    const pushedX = Math.max(10, Math.min(230, position.x + direction * Math.max(1.5, speed * 2)));
+                    const pushedDecor = { ...ball, x: pushedX, y: position.y };
+                    const pushedBounds = getDecorCollisionBounds(pushedDecor);
+                    const overlapsFixedDecor = obstacles.some(({ decor, bounds: obstacleBounds }) =>
+                        decor.id !== 'ball' && pushedBounds.left < obstacleBounds.right &&
+                        pushedBounds.right > obstacleBounds.left && pushedBounds.top < obstacleBounds.bottom &&
+                        pushedBounds.bottom > obstacleBounds.top
+                    );
+                    if (overlapsFixedDecor) return false;
+                    if (!pet.decorPositions) pet.decorPositions = {};
+                    pet.decorPositions.ball = { x: pushedX, y: position.y };
+                }
+            }
+
+            uiState.petDir = dx > 0 ? 1 : dx < 0 ? -1 : uiState.petDir;
+            uiState.petX = nextX;
+            uiState.petY = nextY;
+            return true;
+        }
+
         let pet = null;
         let petHistory = [];
         let uiState = {
@@ -1122,6 +1410,8 @@
             targetX: 95,
             targetY: 165,
             pauseTimer: 0,
+            navigationPath: [],
+            navigationTarget: null,
             petDir: 1,
             frame: 0,
             bannerText: '',
@@ -1134,7 +1424,7 @@
                 { x: 140, y: 36, w: 28, speed: 0.08 }
             ],
             butterfly: { x: 60, y: 95, angle: 0 },
-            visitors: [] // Arreglo de hasta 3 visitas interactuando simultáneamente
+            visitors: [] // Amigos registrados que están de visita
         };
 
         let miniGame = {
@@ -1152,11 +1442,12 @@
             rhythmDir: 1
         };
 
-        function createNewPetObject(name, species, color) {
+        function createNewPetObject(name, species, color, friends = []) {
             const favList = DECOR_CATALOG.map(d => d.id);
             const randomFav = favList[Math.floor(Math.random() * favList.length)];
             return {
                 created: true,
+                friendId: createFriendId(),
                 name: (name || 'MOCHI').toUpperCase().slice(0, 10),
                 species: species || 'CAT',
                 color: color || 'PINK',
@@ -1166,7 +1457,8 @@
                 weight: 5,
                 coins: 0, // Inicia con 0 monedas
                 hunger: 75,
-                thirst: 15,
+                thirst: 100,
+                friends: friends.map(friend => ({ ...friend })),
                 happiness: 90,
                 hygiene: 100,
                 energy: 100,
@@ -1201,6 +1493,10 @@
                 aiBrain: getDefaultBrain(),
                 lastSaved: Date.now()
             };
+        }
+
+        function createFriendId() {
+            return `tama_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
         }
 
         // MOTOR DE IA LOCAL: TEMPERAMENTO, CAPRICHOS Y APRENDIZAJE POR REFUERZO
@@ -1436,6 +1732,30 @@
             return parts.join(', ');
         }
 
+        function getGrowthStage(ageSeconds) {
+            if (ageSeconds < 10) return 'EGG';
+            if (ageSeconds < 259200) return 'BABY';
+            if (ageSeconds < 1036800) return 'CHILD';
+            if (ageSeconds < 2592000) return 'TEEN';
+            return 'ADULT';
+        }
+
+        function getFriendAgeSeconds(friend, now = Date.now()) {
+            const ageSeconds = Number.isFinite(friend.ageSeconds) ? friend.ageSeconds : 0;
+            const ageCapturedAt = Number.isFinite(friend.ageCapturedAt) ? friend.ageCapturedAt : now;
+            return Math.max(0, ageSeconds + Math.floor((now - ageCapturedAt) / 1000));
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[char]);
+        }
+
         function handlePetPassing(reason = 'Falta de cuidados') {
             if (!pet || !pet.isAlive) return;
             pet.isAlive = false;
@@ -1486,6 +1806,10 @@
                     return;
                 }
                 pet = data.pet;
+                if (!pet.friendId) pet.friendId = createFriendId();
+                if (!Array.isArray(pet.friends)) pet.friends = [];
+                if (!Number.isFinite(pet.thirst)) pet.thirst = 100;
+                delete pet.isOnTrip;
                 if (isConvalescing() && !pet.convalesceDurationMs) {
                     pet.convalesceDurationMs = pet.convalesceUntil - Date.now();
                 }
@@ -1550,10 +1874,6 @@
         });
 
         function applyOfflineProgress(seconds) {
-            // FIX: Si está de viaje, el tiempo se congela: no hambre, no popó, no enfermedad
-            if (pet.isOnTrip) {
-                return;
-            }
             const previousAge = pet.ageSeconds;
             const targetAge = previousAge + seconds;
             ensureCareTimers();
@@ -1668,25 +1988,66 @@
          * 6. ADOPCIÓN Y EVOLUCIÓN
          **************************************************************/
         function selectSetupSpecies(sp) {
+            if (!SPECIES_INFO[sp]) return;
             setupSelection.species = sp;
             SFX.tap();
-            document.querySelectorAll('.species-card').forEach(btn => {
-                btn.classList.toggle('selected', btn.dataset.species === sp);
-            });
+            updateSetupSpeciesPreview();
+        }
+
+        function moveSetupSpecies(direction) {
+            const species = Object.keys(SPECIES_INFO);
+            const currentIndex = species.indexOf(setupSelection.species);
+            const nextIndex = (currentIndex + direction + species.length) % species.length;
+            selectSetupSpecies(species[nextIndex]);
         }
 
         function selectSetupColor(clr) {
+            if (!PET_PALETTES[clr]) return;
             setupSelection.color = clr;
             SFX.tap();
             document.querySelectorAll('.color-dot').forEach(btn => {
                 btn.classList.toggle('selected', btn.dataset.color === clr);
             });
+            updateSetupSpeciesPreview();
+        }
+
+        function updateSetupSpeciesPreview() {
+            const info = SPECIES_INFO[setupSelection.species];
+            const canvas = document.getElementById('setupPetPreview');
+            if (!info || !canvas) return;
+            document.getElementById('setupSpeciesName').textContent = info.name;
+            document.getElementById('setupSpeciesDescription').textContent = info.description;
+            const species = Object.keys(SPECIES_INFO);
+            document.getElementById('setupSpeciesPosition').textContent =
+                `${species.indexOf(setupSelection.species) + 1} / ${species.length}`;
+
+            const previewCtx = canvas.getContext('2d');
+            previewCtx.clearRect(0, 0, canvas.width, canvas.height);
+            previewCtx.fillStyle = '#0f172a';
+            previewCtx.fillRect(0, 0, canvas.width, canvas.height);
+            previewCtx.fillStyle = '#334155';
+            previewCtx.fillRect(0, canvas.height - 8, canvas.width, 8);
+            const frames = getSpeciesFrames(setupSelection.species, 'ADULT');
+            drawSprite(frames[0], Math.floor((canvas.width - frames[0][0].length * 8) / 2), 8, 8, false, setupSelection.color, true, previewCtx);
         }
 
         function confirmAdoptPet() {
             const nameVal = document.getElementById('petNameInput').value.trim() || 'MOCHI';
-            pet = createNewPetObject(nameVal, setupSelection.species, setupSelection.color);
-            uiState.location = 'HOME';
+            const previousPet = pet;
+            const friends = Array.isArray(previousPet?.friends) ? previousPet.friends : [];
+            if (previousPet?.isAlive) {
+                petHistory.unshift({
+                    name: previousPet.name,
+                    species: previousPet.species,
+                    stage: previousPet.stage,
+                    ageSeconds: previousPet.ageSeconds,
+                    birthTime: previousPet.birthTime,
+                    passedAt: Date.now(),
+                    reason: 'Reiniciada por su cuidador'
+                });
+            }
+            pet = createNewPetObject(nameVal, setupSelection.species, setupSelection.color, friends);
+            resetInteractionStateForNewPet();
             SFX.evolve();
             toggleModal('setupModal', false);
             showBanner(`¡HOLA ${pet.name}! 🥚`);
@@ -1695,8 +2056,42 @@
         }
 
         function openResetAdoption() {
+            if (pet?.isAlive && !window.confirm('¿Reiniciar el juego? La mascota actual pasará al historial. Se conservarán tus amigos registrados; lo demás comenzará de nuevo.')) {
+                return;
+            }
             SFX.tap();
+            toggleModal('profileModal', false);
             toggleModal('setupModal', true);
+        }
+
+        function resetInteractionStateForNewPet() {
+            Object.assign(uiState, {
+                mode: 'IDLE',
+                location: 'HOME',
+                sceneOverride: null,
+                activeToy: null,
+                toyTimer: 0,
+                curiousAnim: null,
+                curiousTimer: 0,
+                animType: '',
+                animIcon: '',
+                animFoodId: 'rice',
+                medMethod: 'SYRINGE',
+                animTimer: 0,
+                petX: 95,
+                petY: 165,
+                targetX: 95,
+                targetY: 165,
+                pauseTimer: 0,
+                petDir: 1,
+                bannerText: '',
+                bannerTimer: 0,
+                floatingHearts: [],
+                crumbs: [],
+                bubbles: [],
+                visitors: []
+            });
+            closeDrawer();
         }
 
         function checkEvolution() {
@@ -1722,14 +2117,13 @@
 
         setInterval(() => {
             updateRealClockUI();
-            if (!pet || !pet.isAlive) return;
+            if (!pet || !pet.isAlive || !document.getElementById('setupModal').classList.contains('hidden')) return;
 
             const previousAge = pet.ageSeconds;
             pet.ageSeconds++;
             checkEvolution();
 
             if (pet.stage !== 'EGG') {
-                if (!pet.isOnTrip) {
                     advanceCareTimers(previousAge, pet.ageSeconds);
                     if (pet.isSleeping) {
                         if (isRealNight()) {
@@ -1858,62 +2252,51 @@
                         pet.wantsDiscipline = true;
                         SFX.tap();
                     }
-                } else {
-                    shiftCareTimers(1);
-                }
 
-                // Lógica multijugador: actualización de hasta 3 visitas activas simultáneamente
+                // Actualización de las visitas temporales de amigos registrados
                 if (!Array.isArray(uiState.visitors)) uiState.visitors = [];
 
-                // Generación de visitas sorpresa NPC únicamente cuando la mascota NO está de viaje y está presente
-                if (!pet.isOnTrip && uiState.mode === 'IDLE' && !pet.isSleeping && uiState.visitors.length < 3 && pet.ageSeconds % 90 === 0 && Math.random() < 0.45) {
-                    const allSp = ['CAT', 'PUPPY', 'BUNNY', 'DINO'].filter(s => s !== pet.species);
-                    const chosenSp = allSp[Math.floor(Math.random() * allSp.length)];
-                    const npcColors = ['SKY', 'PINK', 'MINT', 'SUNNY', 'LAVENDER'];
-                    const npcHats = [null, 'CROWN', 'BOW', 'CAP', 'FLOWER'];
-                    const npcNames = ['Kira', 'Poco', 'Mimi', 'Toby', 'Nori'];
-
-                    const newNpc = {
-                        id: 'npc_' + Date.now(),
-                        name: npcNames[Math.floor(Math.random() * npcNames.length)],
-                        species: chosenSp,
-                        color: npcColors[Math.floor(Math.random() * npcColors.length)],
-                        hat: npcHats[Math.floor(Math.random() * npcHats.length)],
+                // Solo los amigos registrados pueden visitar; se revisa cada media hora.
+                if (uiState.mode === 'IDLE' && !pet.isSleeping && uiState.visitors.length === 0 &&
+                    Array.isArray(pet.friends) && pet.friends.length > 0 &&
+                    pet.stage !== 'EGG' && pet.ageSeconds % 1800 === 0 && Math.random() < 0.5) {
+                    const friend = pet.friends[Math.floor(Math.random() * pet.friends.length)];
+                    const friendAgeSeconds = getFriendAgeSeconds(friend);
+                    const visitor = {
+                        ...friend,
+                        stage: getGrowthStage(friendAgeSeconds),
                         x: Math.floor(40 + Math.random() * 140),
-                        y: Math.floor(150 + Math.random() * 25),
+                        y: 160,
                         targetX: Math.floor(40 + Math.random() * 140),
-                        targetY: Math.floor(150 + Math.random() * 25),
+                        targetY: 160,
                         pauseTimer: 0,
                         dir: Math.random() < 0.5 ? 1 : -1,
-                        isQR: false,
                         timer: 180,
                         chatTimer: 0,
                         chatEmoji: '🎈'
                     };
-                    uiState.visitors.push(newNpc);
+                    uiState.visitors.push(visitor);
                     pet.happiness = Math.min(100, pet.happiness + 12);
-                    pet.coins += 5;
                     SFX.happy();
-                    showBanner(`¡LLEGÓ ${newNpc.name.toUpperCase()} DE VISITA! 🎈✨`);
+                    showBanner(`¡${visitor.name.toUpperCase()} VINO DE VISITA! 🎈✨`);
                     unlockCareBadge('FRIENDLY', 'BUEN AMIGO');
                 }
 
-                // Despedida progresiva de visitas NPC por tiempo
                 for (let i = uiState.visitors.length - 1; i >= 0; i--) {
                     const v = uiState.visitors[i];
-                    if (!v.isQR) {
-                        v.timer--;
-                        if (v.timer <= 0) {
-                            uiState.visitors.splice(i, 1);
-                            showBanner(`¡${v.name.toUpperCase()} SE DESPIDIÓ! 👋`);
-                        }
+                    v.timer--;
+                    if (v.timer <= 0) {
+                        uiState.visitors.splice(i, 1);
+                        showBanner(`¡${v.name.toUpperCase()} SE DESPIDIÓ! 👋`);
                     }
                 }
 
                 // Interacción automática guiada por juguetes o por su Cerebro IA de Temperamento (solo si está presente)
-                if (!pet.isOnTrip && uiState.mode === 'IDLE' && !pet.isSleeping && uiState.toyTimer <= 0 && uiState.curiousTimer <= 0 && pet.ageSeconds % 14 === 0) {
+                if (uiState.mode === 'IDLE' && !pet.isSleeping && uiState.toyTimer <= 0 && uiState.curiousTimer <= 0 && pet.ageSeconds % 14 === 0) {
                     const targetPlace = (uiState.location === 'HOME') ? 'HOME' : 'PARK';
-                    const activeDecorsHere = DECOR_CATALOG.filter(d => d.place === targetPlace && pet.placedDecor && pet.placedDecor.includes(d.id));
+                    const activeDecorsHere = DECOR_CATALOG
+                        .filter(d => d.place === targetPlace && pet.placedDecor && pet.placedDecor.includes(d.id))
+                        .map(getDecorAtPosition);
                     ensurePetBrain();
                     // Si es muy juguetón prefiere aún más usar sus juguetes; si no, ejecuta un pensamiento autónomo de su IA
                     const playProb = 0.45 + (pet.aiBrain.playfulness / 250);
@@ -1961,8 +2344,8 @@
             document.getElementById('coinsDisplay').textContent = pet.coins;
 
             const currentThirst = (pet.thirst !== undefined) ? pet.thirst : 15;
-            const totalBar = Math.min(100, pet.hunger + currentThirst);
-            document.getElementById('statHungerTxt').textContent = `${totalBar}%`;
+            document.getElementById('statHungerTxt').textContent = `${pet.hunger}%`;
+            document.getElementById('statThirstTxt').textContent = `${currentThirst}%`;
             document.getElementById('statHungerBar').style.width = `${pet.hunger}%`;
             const thirstBarEl = document.getElementById('statThirstBar');
             if (thirstBarEl) thirstBarEl.style.width = `${currentThirst}%`;
@@ -2021,8 +2404,6 @@
                 `);
             } else if (pet.stage === 'EGG') {
                 pills.push(`<div class="px-3 py-1.5 rounded-2xl bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg flex items-center gap-1.5">🥚 Naciendo...</div>`);
-            } else if (pet.isOnTrip) {
-                // Cuando está de viaje, no se muestran píldoras ni botones brillando
             } else if (!pet.isSleeping) {
                 // Solo mostramos píldoras de alerta si la mascota NO está durmiendo
                 if (pet.isSick) {
@@ -2046,6 +2427,14 @@
                     pills.push(`
                         <button onclick="openFeedDrawer()" class="px-3 py-1.5 rounded-2xl bg-rose-600 text-white font-extrabold text-xs shadow-lg border-2 border-white flex items-center gap-1.5 animate-bounce">
                             <i class="fa-solid fa-burger text-sm"></i> ¡Comer!
+                        </button>
+                    `);
+                }
+                if (pet.thirst <= 35) {
+                    setButtonHighlight('btnFeed', true);
+                    pills.push(`
+                        <button onclick="openFeedDrawer()" class="px-3 py-1.5 rounded-2xl bg-sky-600 text-white font-extrabold text-xs shadow-lg border-2 border-white flex items-center gap-1.5 animate-bounce">
+                            <i class="fa-solid fa-droplet text-sm"></i> ¡Tomar agua!
                         </button>
                     `);
                 }
@@ -2092,10 +2481,6 @@
             if (!pet || !pet.isAlive) return false;
             if (pet.stage === 'EGG') {
                 showBanner('¡ESPERA A QUE NAZCA! 🥚');
-                return false;
-            }
-            if (pet.isOnTrip) {
-                showBanner('¡ESTÁ DE VIAJE! 🧳✈️');
                 return false;
             }
             if (pet.isSleeping) {
@@ -2167,13 +2552,13 @@
             const isUnwell = pet.isSick || isConvalescing();
             const hungerLimit = isUnwell ? 50 : 100;
 
-            if (isUnwell && pet.hunger >= hungerLimit) {
+            if (item.type !== 'DRINK' && isUnwell && pet.hunger >= hungerLimit) {
                 showBanner('¡YA COMIÓ LO SUFICIENTE POR AHORA! 🍽️');
                 return;
             }
 
             // A) RECHAZO POR ESTAR LLENO: Ya no sigue comiendo y si lo obligas se molesta y cambia su temperamento
-            if (!isUnwell && pet.hunger >= 92) {
+            if (item.type !== 'DRINK' && !isUnwell && pet.hunger >= 92) {
                 SFX.bad();
                 updateTemperamentTrait('annoyance', 18);
                 updateTemperamentTrait('affection', -6);
@@ -2193,7 +2578,7 @@
             const isPickyNow = (Date.now() < pet.aiBrain.pickyEaterUntil);
 
             // B) RECHAZO POR CAPRICHO / MAL HUMOR O COMIDA QUE NO LE GUSTA
-            if (!isUnwell && isDisliked && (pet.hunger > 35 || pet.aiBrain.annoyance >= 40)) {
+            if (item.type !== 'DRINK' && !isUnwell && isDisliked && (pet.hunger > 35 || pet.aiBrain.annoyance >= 40)) {
                 SFX.bad();
                 updateTemperamentTrait('annoyance', 15);
                 updateTemperamentTrait('affection', -5);
@@ -2207,7 +2592,7 @@
                 return;
             }
 
-            if (!isUnwell && isPickyNow && item.id !== favFood.id && item.type !== 'SNACK' && pet.hunger > 40) {
+            if (item.type !== 'DRINK' && !isUnwell && isPickyNow && item.id !== favFood.id && item.type !== 'SNACK' && pet.hunger > 40) {
                 SFX.bad();
                 updateTemperamentTrait('annoyance', 10);
                 uiState.curiousAnim = 'REFUSE';
@@ -2228,13 +2613,15 @@
             pet.coins -= item.price;
             pet.hunger = Math.min(hungerLimit, pet.hunger + item.hunger);
             pet.thirst = Math.min(100, (pet.thirst !== undefined ? pet.thirst : 15) + item.thirst);
-            pet.starveTicks = 0;
-            pet.weight += (item.type === 'SNACK' ? 2 : 1);
+            if (item.type !== 'DRINK') {
+                pet.starveTicks = 0;
+                pet.weight += (item.type === 'SNACK' ? 2 : 1);
+            }
             if (item.thirst > 0) resetCareTimer('thirst');
-            if (item.price > 0) {
+            if (item.price > 0 && item.type !== 'DRINK') {
                 pet.satietyUntil = Math.max(Date.now(), pet.satietyUntil || 0) + CARE_INTERVAL_RANGES.paidFoodSatiety * 1000;
             }
-            resetCareTimer('hunger');
+            if (item.type !== 'DRINK') resetCareTimer('hunger');
 
             // Si tenía mucha hambre pero le diste lo que NO le gusta, se lo come pero se molesta
             if (isDisliked) {
@@ -2243,13 +2630,17 @@
                 updateTemperamentTrait('affection', -3);
                 pet.aiBrain.lastThought = `Me comí ${item.name} por hambre, pero sabe feo 😖`;
             } else {
-                pet.aiBrain.foodMemory[item.id] = (pet.aiBrain.foodMemory[item.id] || 0) + 1;
-                const isFavMeal = (favFood.id === item.id && pet.aiBrain.foodMemory[item.id] >= 2);
+                const isFavMeal = item.type !== 'DRINK' && (
+                    (pet.aiBrain.foodMemory[item.id] = (pet.aiBrain.foodMemory[item.id] || 0) + 1) >= 2 &&
+                    favFood.id === item.id
+                );
                 pet.happiness = Math.min(100, pet.happiness + item.happy + (isFavMeal ? 6 : 0));
                 updateTemperamentTrait('affection', 2);
                 updateTemperamentTrait('annoyance', -6);
-                updateTemperamentTrait('gluttony', item.type === 'SNACK' ? 3 : 1);
-                pet.aiBrain.lastThought = isFavMeal ? `¡Delicioso! Amo comer ${item.name} ${item.icon} 🥰` : `Qué rico estuvo ${item.name} 😋`;
+                if (item.type !== 'DRINK') updateTemperamentTrait('gluttony', item.type === 'SNACK' ? 3 : 1);
+                pet.aiBrain.lastThought = item.type === 'DRINK'
+                    ? `¡Qué rica bebida! Ya no tengo tanta sed ${item.icon}`
+                    : isFavMeal ? `¡Delicioso! Amo comer ${item.name} ${item.icon} 🥰` : `Qué rico estuvo ${item.name} 😋`;
             }
 
             if (item.type === 'SNACK') {
@@ -2268,7 +2659,9 @@
             uiState.crumbs = [];
             triggerAnimation('EAT', item.icon, 210, 'KITCHEN');
             if (!pet.isSick) {
-                showBanner(isDisliked ? `COMIÓ ${item.name.toUpperCase()} DE MALA GANA 😖` : `¡COMIÓ ${item.name.toUpperCase()}!`);
+                showBanner(item.type === 'DRINK'
+                    ? `¡TOMÓ ${item.name.toUpperCase()}! 💧`
+                    : isDisliked ? `COMIÓ ${item.name.toUpperCase()} DE MALA GANA 😖` : `¡COMIÓ ${item.name.toUpperCase()}!`);
             }
             syncHeaderAndBars();
             saveGame();
@@ -2777,7 +3170,7 @@
             if (!pet) return;
             SFX.select();
             const drawer = document.getElementById('subMenuDrawer');
-            document.getElementById('drawerTitle').textContent = '🗺️ LUGARES, VISITAS QR Y ACCESORIOS';
+            document.getElementById('drawerTitle').textContent = '🗺️ LUGARES, AMIGOS Y ACCESORIOS';
 
             const placesHtml = PLACES_CATALOG.map(p => {
                 const isCurr = uiState.location === p.id;
@@ -2822,13 +3215,13 @@
             }).join('');
 
             document.getElementById('drawerContent').innerHTML = `
-                <!-- Botón Principal Multijugador QR -->
+                <!-- Acceso al directorio y registro de amigos -->
                 <button onclick="openQRTravelModal()" class="w-full mb-3 p-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-slate-950 font-black text-xs flex items-center justify-between shadow-lg transition">
                     <div class="flex items-center gap-2">
-                        <span class="text-2xl">🧳</span>
+                        <span class="text-2xl">👥</span>
                         <div class="text-left leading-tight text-white">
-                            <div class="font-black text-xs">Visitas & Pasaporte QR</div>
-                            <div class="text-[9px] text-amber-200">Mandar de viaje o recibir hasta 3 mascotas</div>
+                            <div class="font-black text-xs">Amigos y código QR</div>
+                            <div class="text-[9px] text-amber-200">Compartir tu QR o registrar un amigo</div>
                         </div>
                     </div>
                     <span class="px-2 py-1 bg-slate-900/80 text-amber-300 rounded-xl text-[10px]">Abrir QR 📱</span>
@@ -2845,7 +3238,7 @@
         }
 
         // ==========================================================
-        // FUNCIONES DE CONTROL MULTIJUGADOR OFFLINE MEDIANTE QR
+        // Registro de amistades y lectura de códigos QR
         // ==========================================================
         let activeQrScanner = null;
 
@@ -2854,8 +3247,12 @@
             closeDrawer();
             toggleModal('qrTravelModal', true);
             renderMyPassportQR();
-            updateVisitorsListUI();
             switchQRTab('MY_PASSPORT');
+        }
+
+        function openQRFromProfile() {
+            toggleModal('profileModal', false);
+            openQRTravelModal();
         }
 
         function closeQRModal() {
@@ -2867,11 +3264,9 @@
             stopQRScanner();
             document.getElementById('qrTabPassport').classList.add('hidden');
             document.getElementById('qrTabScan').classList.add('hidden');
-            document.getElementById('qrTabVisitors').classList.add('hidden');
 
             document.getElementById('tabBtnPassport').className = 'flex-1 py-1.5 rounded-xl text-slate-400 transition';
             document.getElementById('tabBtnScan').className = 'flex-1 py-1.5 rounded-xl text-slate-400 transition';
-            document.getElementById('tabBtnList').className = 'flex-1 py-1.5 rounded-xl text-slate-400 transition';
 
             if (tabKey === 'MY_PASSPORT') {
                 document.getElementById('qrTabPassport').classList.remove('hidden');
@@ -2881,10 +3276,6 @@
                 document.getElementById('qrTabScan').classList.remove('hidden');
                 document.getElementById('tabBtnScan').className = 'flex-1 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold transition';
                 startQRCameraScanner();
-            } else if (tabKey === 'VISITORS_LIST') {
-                document.getElementById('qrTabVisitors').classList.remove('hidden');
-                document.getElementById('tabBtnList').className = 'flex-1 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold transition';
-                updateVisitorsListUI();
             }
         }
 
@@ -2893,14 +3284,17 @@
             const container = document.getElementById('myQrContainer');
             container.innerHTML = '';
             const payload = {
-                t: 'VISIT',
+                t: 'FRIEND',
+                id: pet.friendId,
                 n: pet.name,
                 s: pet.species,
                 c: pet.color,
                 h: pet.equippedHat || '',
-                w: pet.weight
+                ageSeconds: pet.ageSeconds,
+                ageCapturedAt: Date.now(),
+                stage: pet.stage
             };
-            const qrStr = 'TAMA_V1:' + JSON.stringify(payload);
+            const qrStr = 'TAMA_V2:' + JSON.stringify(payload);
             try {
                 new QRCode(container, {
                     text: qrStr,
@@ -2910,51 +3304,10 @@
                     colorLight: '#ffffff',
                     correctLevel: QRCode.CorrectLevel.M
                 });
-            } catch(e) {
-                container.textContent = 'Generando QR...';
+            } catch (error) {
+                container.textContent = 'No se pudo generar el código QR.';
+                console.error('Error al generar el QR de amistad:', error);
             }
-            const statusBanner = document.getElementById('tripStatusBanner');
-            if (pet.isOnTrip) {
-                statusBanner.innerHTML = `
-                    <div class="space-y-1">
-                        <span class="text-amber-300 font-extrabold text-[11px]">🧳 ¡Mascota de viaje! En tu cuarto quedó su maletita.</span><br>
-                        <button onclick="returnPetFromTripFromOwner()" class="mt-1 px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-xl text-[10px] shadow-md transition">
-                            🏠 Regreso de Emergencia / Cancelar Viaje
-                        </button>
-                    </div>
-                `;
-            } else {
-                statusBanner.innerHTML = `
-                    <button onclick="setPetOnTripState()" class="px-3 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-[11px] shadow-md transition">
-                        🧳 Activar Maletita e Ir de Viaje
-                    </button>
-                `;
-            }
-        }
-
-        function setPetOnTripState() {
-            if (!pet) return;
-            pet.isOnTrip = true;
-            // FIX: Congelar todo al irse
-            uiState.activeToy = null;
-            uiState.toyTimer = 0;
-            uiState.curiousTimer = 0;
-            uiState.curiousAnim = null;
-            uiState.floatingHearts = [];
-            uiState.visitors = [];
-            uiState.targetX = 120;
-            uiState.targetY = 165;
-            renderMyPassportQR();
-            showBanner('🧳 ¡TU MASCOTA SALIÓ DE VISITA! EN CASA SE MUESTRA SU MALETA');
-            saveGame();
-        }
-
-        function returnPetFromTripFromOwner() {
-            if (!pet) return;
-            pet.isOnTrip = false;
-            renderMyPassportQR();
-            showBanner('🏠 ¡TU MASCOTA REGRESÓ A CASA!');
-            saveGame();
         }
 
         function startQRCameraScanner() {
@@ -2999,7 +3352,7 @@
                 activeQrScanner = null;
             }
             if (container) {
-                container.innerHTML = '<div class="p-3 text-emerald-300 text-center text- font-bold">✅ Cámara detenida<br><span class="text-slate-400 font-normal">Visita registrada</span></div>';
+                container.innerHTML = '<div class="p-3 text-slate-400 text-center">Cámara detenida</div>';
             }
         }
 
@@ -3011,144 +3364,84 @@
         }
 
         function processScannedQRData(rawStr) {
-            if (!rawStr || (!rawStr.startsWith('TAMA_V1:') && !rawStr.startsWith('TAMA_RET1:'))) {
-                SFX.bad();
-                showBanner('❌ CÓDIGO QR NO VÁLIDO DE TAMAGOTCHI');
-                closeQRModal();
-                return;
-            }
-
-            if (rawStr.startsWith('TAMA_RET1:')) {
-                try {
-                    const json = JSON.parse(rawStr.replace('TAMA_RET1:', ''));
-                    pet.isOnTrip = false;
-                    pet.happiness = 100;
-                    pet.coins += (json.coins || 30);
-                    SFX.evolve();
-                    showBanner(`🏠 ¡${pet.name} REGRESÓ DE SU VIAJE CON REGALO! 🎁 +${json.coins || 30}🪙`);
-                    closeQRModal();
-                    saveGame();
-                    return;
-                } catch(e){}
-            }
-
             try {
-                const data = JSON.parse(rawStr.replace('TAMA_V1:', ''));
-                if (!Array.isArray(uiState.visitors)) uiState.visitors = [];
+                const prefix = rawStr.startsWith('TAMA_V2:') ? 'TAMA_V2:' :
+                    rawStr.startsWith('TAMA_V1:') ? 'TAMA_V1:' : null;
+                if (!prefix) throw new Error('El código no pertenece a un Tamagotchi.');
+                const data = JSON.parse(rawStr.slice(prefix.length));
+                const name = String(data.n || '').trim().slice(0, 20);
+                const species = SPECIES_INFO[data.s] ? data.s : null;
+                const color = PET_PALETTES[data.c] ? data.c : null;
+                const hat = HAT_CATALOG.some(item => item.id === data.h) ? data.h : null;
+                if (!name || !species || !color || (data.t && !['FRIEND', 'VISIT'].includes(data.t))) {
+                    throw new Error('El QR no contiene una mascota válida.');
+                }
 
-                if (uiState.visitors.length >= 3) {
-                    SFX.bad();
-                    showBanner('⚠️ ¡YA HAY 3 VISITAS EN CASA! DESPIDE A UNA PRIMERO');
+                const hasStableId = typeof data.id === 'string' && /^[A-Za-z0-9_-]{1,80}$/.test(data.id);
+                let friendId = hasStableId
+                    ? data.id
+                    : '';
+                if (!friendId) {
+                    const identity = `${name}|${species}|${color}|${hat || ''}`;
+                    let hash = 0;
+                    for (let i = 0; i < identity.length; i++) {
+                        hash = ((hash << 5) - hash + identity.charCodeAt(i)) | 0;
+                    }
+                    friendId = `legacy_${Math.abs(hash)}`;
+                }
+                if (friendId === pet.friendId || (!hasStableId &&
+                    name.toUpperCase() === pet.name &&
+                    species === pet.species &&
+                    color === pet.color &&
+                    (hat || null) === (pet.equippedHat || null))) {
+                    showBanner('Ese QR es de tu propio Tamagotchi.');
+                    return;
+                }
+                if (!Array.isArray(pet.friends)) pet.friends = [];
+                if (pet.friends.some(friend => friend.id === friendId)) {
+                    showBanner(`${name.toUpperCase()} ya está en tu directorio.`);
                     closeQRModal();
                     return;
                 }
 
-                const newVisitor = {
-                    id: 'qr_' + Date.now(),
-                    name: data.n || 'Amigo',
-                    species: data.s || 'CAT',
-                    color: data.c || 'PINK',
-                    hat: data.h || null,
-                    x: Math.floor(40 + Math.random() * 140),
-                    y: Math.floor(150 + Math.random() * 25),
-                    targetX: Math.floor(40 + Math.random() * 140),
-                    targetY: Math.floor(150 + Math.random() * 25),
-                    pauseTimer: 0,
-                    dir: 1,
-                    isQR: true,
-                    chatTimer: 0,
-                    chatEmoji: '✨'
+                const now = Date.now();
+                const scannedAge = Number(data.ageSeconds);
+                const ageSeconds = Number.isFinite(scannedAge) && scannedAge >= 0 ? scannedAge : 0;
+                const scannedAt = Number(data.ageCapturedAt);
+                const ageCapturedAt = Number.isFinite(scannedAt) && scannedAt <= now ? scannedAt : now;
+                const friend = {
+                    id: friendId,
+                    name: name.toUpperCase(),
+                    species,
+                    color,
+                    hat,
+                    ageSeconds,
+                    ageCapturedAt,
+                    bondedAt: now,
+                    stageAtBond: getGrowthStage(Math.max(0, ageSeconds + Math.floor((now - ageCapturedAt) / 1000)))
                 };
-
-                uiState.visitors.push(newVisitor);
-                pet.happiness = Math.min(100, pet.happiness + 20);
+                pet.friends.push(friend);
                 SFX.evolve();
-                showBanner(`✨ ¡${newVisitor.name.toUpperCase()} LLEGÓ DE VISITA POR QR! 🎉`);
+                showBanner(`¡${friend.name} SE AGREGÓ A TUS AMIGOS! 💛`);
                 unlockCareBadge('FRIENDLY', 'BUEN AMIGO');
-                updateVisitorsListUI();
                 closeQRModal();
                 saveGame();
-            } catch(e) {
+                openProfileModal();
+            } catch (error) {
                 SFX.bad();
-                showBanner('❌ ERROR AL LEER CÓDIGO QR');
+                console.warn('No se pudo registrar la amistad desde el QR:', error);
+                showBanner('❌ QR INVÁLIDO: NO SE PUDO REGISTRAR');
             }
         }
 
-        function updateVisitorsListUI() {
-            const list = uiState.visitors || [];
-            const countEl1 = document.getElementById('qrVisitorCount');
-            const countEl2 = document.getElementById('qrListCount');
-            if (countEl1) countEl1.textContent = list.length;
-            if (countEl2) countEl2.textContent = list.length;
-            const container = document.getElementById('activeVisitorsContainer');
-            if (!container) return;
-
-            if (list.length === 0) {
-                container.innerHTML = `<div class="text-[11px] text-slate-400 text-center py-4 bg-slate-950/60 rounded-2xl border border-slate-800">No hay visitas en casa actualmente.<br>¡Escanea un QR para hospedar hasta 3 amigos!</div>`;
-                return;
-            }
-
-            container.innerHTML = list.map((v, idx) => {
-                const sp = SPECIES_INFO[v.species] || SPECIES_INFO.CAT;
-                return `
-                    <div class="bg-slate-800 p-2.5 rounded-2xl border border-slate-700 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="text-2xl">${sp.emoji}</span>
-                            <div>
-                                <div class="font-extrabold text-xs text-white">${v.name} <span class="text-[9px] text-amber-300">(${v.isQR ? 'QR Amigo' : 'Visita NPC'})</span></div>
-                                <div class="text-[10px] text-slate-400">${sp.name} • Color ${v.color}</div>
-                            </div>
-                        </div>
-                        <button onclick="dismissVisitorAndMakeReturnQR(${idx})" class="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-[10px] font-extrabold flex items-center gap-1">
-                            <span>Despedir</span> 🎟️
-                        </button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function dismissVisitorAndMakeReturnQR(index) {
-            const list = uiState.visitors || [];
-            if (index < 0 || index >= list.length) return;
-            const v = list[index];
-
-            const returnPayload = {
-                t: 'RETURN',
-                n: v.name,
-                coins: 30,
-                msg: '¡Gracias por la visita!'
-            };
-            const retStr = 'TAMA_RET1:' + JSON.stringify(returnPayload);
-
-            list.splice(index, 1);
-            updateVisitorsListUI();
-
-            const returnBox = document.getElementById('returnQrContainer');
-            if (returnBox) returnBox.classList.remove('hidden');
-
-            const graphicContainer = document.getElementById('returnQrGraphic');
-            if (graphicContainer) {
-                graphicContainer.innerHTML = '';
-                try {
-                    new QRCode(graphicContainer, {
-                        text: retStr,
-                        width: 140,
-                        height: 140,
-                        colorDark: '#047857',
-                        colorLight: '#ffffff',
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
-                } catch(e){}
-            }
-
-            SFX.happy();
-            showBanner(`🎟️ ¡${v.name.toUpperCase()} SE DESPIDIÓ! QR DE REGRESO GENERADO`);
+        function removeRegisteredFriend(index) {
+            if (!pet || !Array.isArray(pet.friends) || index < 0 || index >= pet.friends.length) return;
+            const [friend] = pet.friends.splice(index, 1);
+            uiState.visitors = uiState.visitors.filter(visitor => visitor.id !== friend.id);
+            SFX.tap();
             saveGame();
-        }
-
-        function closeReturnQRView() {
-            const returnBox = document.getElementById('returnQrContainer');
-            if (returnBox) returnBox.classList.add('hidden');
+            openProfileModal();
+            showBanner(`${friend.name} se quitó de tu directorio.`);
         }
 
         function buyOrEquipHat(hatId) {
@@ -3186,6 +3479,8 @@
             }
             uiState.location = placeId;
             uiState.sceneOverride = null;
+            uiState.navigationPath = [];
+            uiState.navigationTarget = null;
             uiState.targetX = 95;
             uiState.targetY = 165;
             uiState.pauseTimer = 0;
@@ -3251,6 +3546,7 @@
             if (show) {
                 el.classList.remove('hidden');
                 el.classList.add('flex');
+                if (id === 'setupModal') updateSetupSpeciesPreview();
             } else {
                 el.classList.add('hidden');
                 el.classList.remove('flex');
@@ -3260,11 +3556,37 @@
         function openProfileModal() {
             if (!pet) return;
             SFX.tap();
+            if (!Array.isArray(pet.friends)) pet.friends = [];
             const sp = SPECIES_INFO[pet.species] || SPECIES_INFO.CAT;
             const detailedAge = formatAgeDetailed(pet.ageSeconds);
             const birthDateStr = new Date(pet.birthTime || Date.now()).toLocaleDateString('es-MX', {
                 day: '2-digit', month: 'short', year: 'numeric'
             });
+            const friendsHtml = pet.friends.length === 0
+                ? `<div class="text-[11px] text-slate-400 text-center py-3 bg-slate-950/60 rounded-xl border border-slate-700/60">Aún no tienes amigos registrados. Comparte tu QR o escanea el de un amigo. 💛</div>`
+                : pet.friends.map((friend, index) => {
+                    const friendSpecies = SPECIES_INFO[friend.species] || SPECIES_INFO.CAT;
+                    const ageSeconds = getFriendAgeSeconds(friend);
+                    const currentStage = getGrowthStage(ageSeconds);
+                    const bondedAt = new Date(friend.bondedAt || Date.now()).toLocaleDateString('es-MX', {
+                        day: '2-digit', month: 'short', year: 'numeric'
+                    });
+                    const hat = HAT_CATALOG.find(item => item.id === friend.hat);
+                    return `
+                        <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+                            <div class="flex items-start gap-2">
+                                <span class="text-2xl">${friendSpecies.emoji}${hat ? hat.icon : ''}</span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-extrabold text-xs text-white truncate">${escapeHtml(friend.name)}</div>
+                                    <div class="text-[10px] text-amber-300">${friendSpecies.name} • ${STAGE_NAMES[currentStage]} (al vínculo: ${STAGE_NAMES[friend.stageAtBond] || STAGE_NAMES[getGrowthStage(ageSeconds)]})</div>
+                                    <div class="text-[10px] text-slate-400">Edad: ${formatAgeDetailed(ageSeconds)}</div>
+                                    <div class="text-[10px] text-slate-400">Vínculo: ${bondedAt} • Color ${escapeHtml(friend.color)}</div>
+                                </div>
+                                <button onclick="removeRegisteredFriend(${index})" aria-label="Quitar a ${escapeHtml(friend.name)}" class="px-2 py-1 text-[10px] bg-rose-900/70 hover:bg-rose-800 text-rose-200 rounded-lg">Quitar</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
 
             const historyHtml = petHistory.length === 0
                 ? `<div class="text-[11px] text-slate-400 text-center py-2.5 bg-slate-800/50 rounded-xl border border-slate-700/60">Aún no hay mascotas anteriores en el recuerdo 🌟</div>`
@@ -3302,6 +3624,14 @@
                 <div class="bg-indigo-950/60 p-3 rounded-2xl border border-indigo-500/30">
                     <div class="text-[10px] font-bold text-indigo-300 uppercase">⏳ Edad y Tiempo de Vida</div>
                     <div class="font-extrabold text-xs text-white mt-0.5">${detailedAge}</div>
+                </div>
+
+                <div class="bg-slate-800/80 p-3 rounded-2xl border border-amber-400/30 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="text-[10px] font-extrabold text-amber-300 uppercase">👥 Amigos (${pet.friends.length})</div>
+                        <button onclick="openQRFromProfile()" class="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-[10px] font-extrabold">＋ Registrar por QR</button>
+                    </div>
+                    <div class="space-y-1.5">${friendsHtml}</div>
                 </div>
 
                 <!-- Panel del Cerebro IA Local (Temperamento y Aprendizaje) -->
@@ -3379,6 +3709,11 @@
                         ${historyHtml}
                     </div>
                 </div>
+
+                <div class="bg-rose-950/40 p-3 rounded-2xl border border-rose-500/30 space-y-2">
+                    <div class="text-[10px] text-slate-300">Reiniciar crea una nueva mascota, conserva tus amigos y guarda la actual en el historial.</div>
+                    <button onclick="openResetAdoption()" class="w-full py-2 bg-rose-700 hover:bg-rose-600 text-white font-extrabold rounded-xl text-xs transition">🔄 Reiniciar juego</button>
+                </div>
             `;
             toggleModal('profileModal', true);
         }
@@ -3391,7 +3726,7 @@
 
         // Toque directo en el lienzo: permite tocar juguetes puestos (como la radio o la pelota) o mimar a la mascota
         canvas.addEventListener('pointerdown', (e) => {
-            if (!pet || !pet.isAlive || pet.stage === 'EGG' || uiState.mode !== 'IDLE' || pet.isOnTrip) return;
+            if (!pet || !pet.isAlive || pet.stage === 'EGG' || uiState.mode !== 'IDLE') return;
             const rect = canvas.getBoundingClientRect();
             const clickX = ((e.clientX - rect.left) / rect.width) * canvas.width;
             const clickY = ((e.clientY - rect.top) / rect.height) * canvas.height;
@@ -3401,8 +3736,9 @@
             if (Array.isArray(pet.placedDecor)) {
                 const activeDecors = DECOR_CATALOG.filter(d => d.place === targetPlace && pet.placedDecor.includes(d.id));
                 for (const d of activeDecors) {
-                    if (Math.hypot(clickX - d.x, clickY - d.y) < 28) {
-                        uiState.activeToy = d;
+                    const placedDecor = getDecorAtPosition(d);
+                    if (Math.hypot(clickX - placedDecor.x, clickY - placedDecor.y) < 28) {
+                        uiState.activeToy = placedDecor;
                         uiState.toyTimer = 130;
                         pet.happiness = Math.min(100, pet.happiness + 6);
                         SFX.happy();
@@ -3420,10 +3756,7 @@
 
         function getCurrentPetFrames() {
             if (!pet || pet.stage === 'EGG') return SPRITES.EGG;
-            if (pet.stage === 'BABY') {
-                return SPRITES['BABY_' + pet.species] || SPRITES.BABY_CAT;
-            }
-            return SPRITES[pet.species] || SPRITES.CAT;
+            return getSpeciesFrames(pet.species, pet.stage);
         }
 
         function getPetFacialExpression() {
@@ -3471,7 +3804,8 @@
             }
         }
 
-        function drawSprite(grid, x, y, scale = 3, flipX = false, customColorKey = null, isVisitor = false) {
+        function drawSprite(grid, x, y, scale = 3, flipX = false, customColorKey = null, isVisitor = false, renderCtx = ctx) {
+            const ctx = renderCtx;
             const colorKey = customColorKey || (pet ? pet.color : 'PINK');
             const pal = PET_PALETTES[colorKey] || PET_PALETTES.PINK;
             const colorMap = {
@@ -3489,7 +3823,10 @@
                 'M': '#0f172a',
                 'W': '#ffffff',
                 'R': '#f43f5e',
-                'T': '#92400e'
+                'T': '#92400e',
+                'O': '#f97316',
+                'A': '#0f172a',
+                'Y': '#f59e0b'
             };
 
             const expr = isVisitor
@@ -3569,6 +3906,16 @@
                             ctx.fillStyle = '#0f172a';
                             ctx.fillRect(x1, y1 + Math.floor(h * 0.35), w, Math.max(2, Math.floor(scale * 0.45)));
                         }
+                        continue;
+                    }
+
+                    if (ch === 'C' || ch === 'c') {
+                        ctx.fillStyle = pal.body;
+                        ctx.fillRect(x1, y1, w, h);
+                        ctx.fillStyle = colorMap[ch];
+                        const lineHeight = Math.max(1, Math.floor(scale * 0.2));
+                        const lineY = y1 + Math.floor((h - lineHeight) / 2);
+                        ctx.fillRect(x1, lineY, w, lineHeight);
                         continue;
                     }
 
@@ -3901,14 +4248,14 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Renderizar hasta 3 visitas activas interactuando entre sí en la Sala
+            // Renderizar al amigo registrado que está de visita en la Sala
             drawActiveVisitorsOnCanvas();
 
             // Dibujar TODAS las decoraciones colocadas en la Sala con animaciones propias por objeto
             if (pet && Array.isArray(pet.placedDecor)) {
                 DECOR_CATALOG.filter(d => d.place === 'HOME' && pet.placedDecor.includes(d.id)).forEach(d => {
                     const isPlayingThis = uiState.toyTimer > 0 && uiState.activeToy && uiState.activeToy.id === d.id;
-                    drawCustomDecorObject(d, isPlayingThis);
+                    drawCustomDecorObject(getDecorAtPosition(d), isPlayingThis);
                 });
             }
         }
@@ -4223,11 +4570,11 @@
             if (pet && Array.isArray(pet.placedDecor)) {
                 DECOR_CATALOG.filter(d => d.place === 'PARK' && pet.placedDecor.includes(d.id)).forEach(d => {
                     const isPlayingThis = uiState.toyTimer > 0 && uiState.activeToy && uiState.activeToy.id === d.id;
-                    drawCustomDecorObject(d, isPlayingThis);
+                    drawCustomDecorObject(getDecorAtPosition(d), isPlayingThis);
                 });
             }
 
-            // Renderizar hasta 3 visitas activas interactuando entre sí en el Exterior
+            // Renderizar al amigo registrado que está de visita en el Exterior
             drawActiveVisitorsOnCanvas();
         }
 
@@ -4286,7 +4633,7 @@
             }
         }
 
-        // Renderizado gráfico de hasta 3 visitas - ULTRA FIX: sin volar, sin gigante, escala pequeña
+        // Renderizado gráfico de la visita registrada con su etapa y apariencia
         function drawActiveVisitorsOnCanvas() {
             if (!pet || pet.stage === 'EGG' || !Array.isArray(uiState.visitors) || uiState.visitors.length === 0) return;
 
@@ -4294,7 +4641,7 @@
             const inSpecialRoom = pet.isSleeping || (uiState.mode === 'ANIMATING' && ['KITCHEN', 'BATHROOM', 'HOSPITAL', 'SCHOOL'].includes(uiState.sceneOverride));
             if (inSpecialRoom) return;
 
-            // Forzar todas las visitas al piso y tamaño pequeño (2.2 = más chico que el adulto 5)
+            // Mantener al visitante en el piso y a escala con su etapa actual.
             list.forEach(v => {
                 if (typeof v.x !== 'number' || isNaN(v.x)) v.x = 80;
                 if (!SPECIES_INFO[v.species]) v.species = 'CAT';
@@ -4323,11 +4670,12 @@
 
             // Dibujar cada visita chiquita (escala 2.2) en el piso
             list.forEach(v => {
-                const frames = SPRITES[v.species] || SPRITES.CAT;
+                v.stage = getGrowthStage(getFriendAgeSeconds(v));
+                const frames = getSpeciesFrames(v.species, v.stage);
                 const col = PET_PALETTES[v.color] ? v.color : 'PINK';
                 const step = uiState.frame % 30 < 15 ? 0 : 1;
                 const vx = Math.floor(v.x);
-                const visitorScale = v.isQR ? 1.6 : 2.2;
+                const visitorScale = { EGG: 1.2, BABY: 1.6, CHILD: 1.8, TEEN: 2, ADULT: 2.2 }[v.stage];
                 const spriteCenterX = vx + (frames[step][0].length * visitorScale) / 2;
                 const vy = 165 - (frames[step].length * visitorScale);
                 ctx.save();
@@ -4411,17 +4759,12 @@
                     return;
                 }
 
-                // FIX: CONGELADO SI ESTÁ DE VIAJE - no se mueve ni juega solo
-                if (pet.isOnTrip) {
-                    uiState.activeToy = null;
-                    uiState.toyTimer = 0;
-                } else if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
+                if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
                     uiState.activeToy = null;
                     uiState.toyTimer = 0;
                     const visitorTargetX = 118;
                     if (Math.abs(uiState.petX - visitorTargetX) > 2) {
-                        uiState.petDir = (visitorTargetX > uiState.petX) ? 1 : -1;
-                        uiState.petX += uiState.petDir * 1.5;
+                        movePetToward(visitorTargetX, uiState.petY, 1.5, getPetMovementScale());
                     } else {
                         uiState.petDir = 1; // Mira hacia el amigo visitante a la derecha
                     }
@@ -4429,6 +4772,7 @@
                     uiState.toyTimer--;
                     // Coordenada objetivo según cómo se interactúa con cada objeto
                     let targetX = Math.max(24, Math.min(168, uiState.activeToy.x - 18));
+                    const spriteWidth = getCurrentPetFrames()[0][0].length * getPetMovementScale();
                     if (uiState.activeToy.id === 'trampoline') {
                         // Se sube exactamente al centro de la lona del brincolín
                         targetX = uiState.activeToy.x - 18;
@@ -4437,11 +4781,10 @@
                         targetX = uiState.activeToy.x + 22;
                     } else if (uiState.activeToy.id === 'teddy') {
                         // Se acerca pegadito al osito para abrazarlo
-                        targetX = uiState.activeToy.x - 28;
+                        targetX = uiState.activeToy.x - spriteWidth - 14;
                     }
                     if (Math.abs(uiState.petX - targetX) > 2) {
-                        uiState.petDir = (targetX > uiState.petX) ? 1 : -1;
-                        uiState.petX += uiState.petDir * 1.4;
+                        movePetToward(targetX, uiState.petY, 1.4, getPetMovementScale(), uiState.activeToy.id);
                     }
                 } else if (uiState.curiousTimer > 0) {
                     uiState.curiousTimer--;
@@ -4455,28 +4798,22 @@
                     if (uiState.pauseTimer > 0) {
                         uiState.pauseTimer--;
                     } else {
+                        const movementScale = getPetMovementScale();
                         const dist = Math.hypot(uiState.targetX - uiState.petX, uiState.targetY - uiState.petY);
                         if (dist < 3) {
                             const isUnwell = pet.isSick || isConvalescing();
-                            uiState.pauseTimer = isUnwell ? Math.floor(180 + Math.random() * 220) : Math.floor(40 + Math.random() * 80);
-                            const minX = (uiState.location === 'HOME') ? 35 : 25;
-                            const maxX = (uiState.location === 'HOME') ? 165 : 185;
-                            const minY = (uiState.location === 'HOME') ? 152 : 142;
-                            const maxY = (uiState.location === 'HOME') ? 176 : 182;
+                            uiState.pauseTimer = isUnwell ? Math.floor(180 + Math.random() * 220) : Math.floor(25 + Math.random() * 65);
+                            const spriteWidth = getCurrentPetFrames()[0][0].length * movementScale;
+                            const minX = 8;
+                            const maxX = 240 - spriteWidth - 8;
+                            const minY = (uiState.location === 'HOME') ? 154 : 146;
+                            const maxY = 202;
                             uiState.targetX = Math.floor(minX + Math.random() * (maxX - minX));
                             uiState.targetY = Math.floor(minY + Math.random() * (maxY - minY));
                         } else {
                             const isUnwell = pet.isSick || isConvalescing();
-                            const speed = isUnwell ? 0.2 : 0.55;
-                            const dx = uiState.targetX - uiState.petX;
-                            const dy = uiState.targetY - uiState.petY;
-                            const angle = Math.atan2(dy, dx);
-                            
-                            if (Math.abs(dx) > 1) {
-                                uiState.petDir = dx > 0 ? 1 : -1;
-                            }
-                            uiState.petX += Math.cos(angle) * speed;
-                            uiState.petY += Math.sin(angle) * speed;
+                            const speed = isUnwell ? 0.25 : 0.75;
+                            movePetToward(uiState.targetX, uiState.targetY, speed, movementScale);
                         }
                     }
                 }
@@ -4567,56 +4904,41 @@
 
                 const drawY = baseY;
 
-                // Si la mascota está de viaje en lo de un amigo, dibujamos su equipaje 🧳 esperándolo
-                if (pet.isOnTrip && !inSpecialRoom) {
-                    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+                // Sombra en el suelo
+                if (!inSpecialRoom && uiState.curiousAnim !== 'PEEK_SCREEN') {
+                    const shadowScale = Math.max(0.35, 1 - (toyJump / 70));
+                    const shadowY = floorY - sc;
+                    ctx.fillStyle = 'rgba(0,0,0,0.16)';
                     ctx.beginPath();
-                    ctx.ellipse(120, floorY, 18, 5, 0, 0, Math.PI * 2);
+                    ctx.ellipse(drawX + (6 * sc), shadowY, (6 * sc) * shadowScale, 4 * shadowScale, 0, 0, Math.PI * 2);
                     ctx.fill();
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '28px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('🧳', 120, floorY - 4 + Math.sin(uiState.frame * 0.08) * 2);
-                    ctx.font = '800 8px "Nunito", sans-serif';
-                    ctx.fillText('De viaje...', 120, floorY - 32);
-                } else {
-                    // Sombra en el suelo
-                    if (!inSpecialRoom && uiState.curiousAnim !== 'PEEK_SCREEN') {
-                        const shadowScale = Math.max(0.35, 1 - (toyJump / 70));
-                        ctx.fillStyle = 'rgba(0,0,0,0.16)';
-                        ctx.beginPath();
-                        ctx.ellipse(drawX + (6 * sc), floorY, (6 * sc) * shadowScale, 4 * shadowScale, 0, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-
-                    // Restablecer fillStyle opaco
-                    ctx.fillStyle = '#ffffff';
-                    ctx.globalAlpha = 1.0;
-
-                    drawSprite(frames[animIdx], drawX, drawY, sc, flipPet);
                 }
 
-                if (!pet.isOnTrip) {
-                    // Reacción interactiva cuando hay un amigo de visita (globos de plática, notas y corazones entre ambos)
-                    if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
-                        ctx.save();
-                        ctx.fillStyle = '#ffffff';
-                        ctx.textAlign = 'center';
-                        const chatPhase = Math.floor(uiState.frame / 24) % 3;
-                        if (chatPhase === 0) {
-                            ctx.font = '13px sans-serif';
-                            ctx.fillText('💬', drawX + 26, drawY - 4);
-                            drawSprite(SPRITES.HEART, 152, 98 - (uiState.frame % 10), 1.8);
-                        } else if (chatPhase === 1) {
-                            ctx.font = '13px sans-serif';
-                            ctx.fillText('🎶', 168, 96);
-                            ctx.fillText('😄', drawX + 12, drawY - 6);
-                        } else {
-                            drawSprite(SPRITES.HEART, drawX + 18, drawY - 12, 2);
-                            drawSprite(SPRITES.HEART, 174, 94, 2);
-                        }
-                        ctx.restore();
+                // Restablecer fillStyle opaco
+                ctx.fillStyle = '#ffffff';
+                ctx.globalAlpha = 1.0;
+
+                drawSprite(frames[animIdx], drawX, drawY, sc, flipPet);
+
+                // Reacción interactiva cuando hay un amigo de visita
+                if (uiState.visitors && uiState.visitors.length > 0 && uiState.mode === 'IDLE' && !pet.isSleeping && pet.stage !== 'EGG') {
+                    ctx.save();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    const chatPhase = Math.floor(uiState.frame / 24) % 3;
+                    if (chatPhase === 0) {
+                        ctx.font = '13px sans-serif';
+                        ctx.fillText('💬', drawX + 26, drawY - 4);
+                        drawSprite(SPRITES.HEART, 152, 98 - (uiState.frame % 10), 1.8);
+                    } else if (chatPhase === 1) {
+                        ctx.font = '13px sans-serif';
+                        ctx.fillText('🎶', 168, 96);
+                        ctx.fillText('😄', drawX + 12, drawY - 6);
+                    } else {
+                        drawSprite(SPRITES.HEART, drawX + 18, drawY - 12, 2);
+                        drawSprite(SPRITES.HEART, 174, 94, 2);
                     }
+                    ctx.restore();
 
                     // Dibujar sombrerito o accesorio equipado sobre la cabecita de la mascota
                     if (pet.equippedHat && pet.stage !== 'EGG') {
@@ -4662,7 +4984,7 @@
                             ctx.fillText('💧', drawX + 24, drawY - 4 + (uiState.frame % 10));
                         }
                         ctx.restore();
-                    } else if (!pet.isSleeping && uiState.mode === 'IDLE' && pet.stage !== 'EGG' && !pet.isOnTrip) {
+                    } else if (!pet.isSleeping && uiState.mode === 'IDLE' && pet.stage !== 'EGG') {
                         // Si es de noche real (21:00 a 08:00) y está despierto, muestra "z Z z" flotante indicando sueño natural
                         if (isRealNight()) {
                             ctx.save();
@@ -4674,9 +4996,9 @@
                             ctx.restore();
                         }
 
-                        // Mostrar burbujita de estado emocional si está Molesto, Triste o Gruñón - NO si está de viaje
+                        // Mostrar burbujita de estado emocional si está Molesto, Triste o Gruñón
                         const currTemp = getPetTemperamentInfo();
-                        if (!pet.isOnTrip && ['ANGRY', 'SAD', 'GRUMPY'].includes(currTemp.id)) {
+                        if (['ANGRY', 'SAD', 'GRUMPY'].includes(currTemp.id)) {
                             ctx.save();
                             ctx.font = '13px sans-serif';
                             ctx.textAlign = 'center';
@@ -4699,8 +5021,8 @@
                     if (uiState.sceneOverride === 'SCHOOL') drawSchoolDeskOverlay();
                 }
 
-                // Indicador visual sobre la mascota cuando está enferma - NO mostrar si está de viaje
-                if (pet.isSick && !pet.isSleeping && !pet.isOnTrip) {
+                // Indicador visual sobre la mascota cuando está enferma
+                if (pet.isSick && !pet.isSleeping) {
                     ctx.save();
                     ctx.font = '14px sans-serif';
                     ctx.textAlign = 'center';
