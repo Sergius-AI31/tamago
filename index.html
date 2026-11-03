@@ -249,17 +249,21 @@
             <div id="statusPills" class="absolute top-2.5 left-2.5 right-2.5 flex flex-wrap gap-2 z-20"></div>
 
             <!-- Controles grandes cuando hay un Minijuego activo -->
-            <div id="minigameControls" class="hidden absolute bottom-3 inset-x-4 flex items-center justify-between gap-3 z-20">
-                <button onpointerdown="handleMinigameInput('LEFT')" class="flex-1 py-4 bg-indigo-600/95 active:bg-indigo-500 text-white rounded-2xl font-bold shadow-lg border-2 border-indigo-300 flex items-center justify-center gap-2 text-base">
-                    <i class="fa-solid fa-arrow-left text-2xl"></i>
-                    <span class="text-[10px] opacity-80 hidden sm:inline">(◀)</span>
+            <div id="minigameControls" class="hidden absolute bottom-2.5 inset-x-3 flex items-center justify-between gap-2 z-20">
+                <button onpointerdown="handleMinigameInput('LEFT')" class="flex-1 py-3.5 bg-indigo-600/95 active:bg-indigo-500 text-white rounded-2xl font-bold shadow-lg border-2 border-indigo-300 flex items-center justify-center">
+                    <i class="fa-solid fa-arrow-left text-xl"></i>
                 </button>
-                <button onpointerdown="finishMiniGame()" class="px-4 py-4 bg-rose-600/95 active:bg-rose-500 text-white rounded-2xl font-bold shadow-lg border-2 border-rose-300 text-xs">
+                <button id="btnMinigameUp" onpointerdown="handleMinigameInput('UP_ABS')" class="hidden flex-1 py-3.5 bg-indigo-600/95 active:bg-indigo-500 text-white rounded-2xl font-bold shadow-lg border-2 border-indigo-300 items-center justify-center">
+                    <i class="fa-solid fa-arrow-up text-xl"></i>
+                </button>
+                <button id="btnMinigameDown" onpointerdown="handleMinigameInput('DOWN_ABS')" class="hidden flex-1 py-3.5 bg-indigo-600/95 active:bg-indigo-500 text-white rounded-2xl font-bold shadow-lg border-2 border-indigo-300 items-center justify-center">
+                    <i class="fa-solid fa-arrow-down text-xl"></i>
+                </button>
+                <button onpointerdown="handleMinigameInput('RIGHT')" class="flex-1 py-3.5 bg-indigo-600/95 active:bg-indigo-500 text-white rounded-2xl font-bold shadow-lg border-2 border-indigo-300 flex items-center justify-center">
+                    <i class="fa-solid fa-arrow-right text-xl"></i>
+                </button>
+                <button onpointerdown="finishMiniGame()" class="px-3.5 py-3.5 bg-rose-600/95 active:bg-rose-500 text-white rounded-2xl font-bold shadow-lg border-2 border-rose-300 text-xs">
                     <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-                <button onpointerdown="handleMinigameInput('RIGHT')" class="flex-1 py-4 bg-indigo-600/95 active:bg-indigo-500 text-white rounded-2xl font-bold shadow-lg border-2 border-indigo-300 flex items-center justify-center gap-2 text-base">
-                    <span class="text-[10px] opacity-80 hidden sm:inline">(▶)</span>
-                    <i class="fa-solid fa-arrow-right text-2xl"></i>
                 </button>
             </div>
         </main>
@@ -3048,7 +3052,7 @@
             saveGame();
         }
 
-        // 3. MINIJUEGOS Y ACTIVIDADES ESTILO TAMAGOTCHI PIX / UNI
+        // 3. MINIJUEGOS Y ACTIVIDADES CLÁSICAS
         function openGamesDrawer() {
             if (!canInteract()) return;
             cancelActiveMiniGame();
@@ -3068,32 +3072,46 @@
 
             document.getElementById('drawerContent').innerHTML = `
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="startMiniGame('STARS')" class="p-2.5 rounded-2xl bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-500/40 flex items-center gap-2.5 text-left transition">
+                    <button onclick="startMiniGame('STARS')" class="p-2 rounded-2xl bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-500/40 flex items-center gap-2 text-left transition">
                         <span class="text-2xl">⭐</span>
                         <div>
                             <div class="font-extrabold text-xs text-white">Atrapa Estrellas</div>
-                            <div class="text-[10px] text-indigo-300">Usa ◀ ▶ o Flechas PC</div>
+                            <div class="text-[9px] text-indigo-300">Esquiva bombas ◀ ▶</div>
                         </div>
                     </button>
-                    <button onclick="startMiniGame('FRUITS')" class="p-2.5 rounded-2xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/40 flex items-center gap-2.5 text-left transition">
-                        <span class="text-2xl">🍓</span>
+                    <button onclick="startMiniGame('SNAKE')" class="p-2 rounded-2xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/40 flex items-center gap-2 text-left transition">
+                        <span class="text-2xl">🐍</span>
                         <div>
-                            <div class="font-extrabold text-xs text-white">Fiesta de Frutas</div>
-                            <div class="text-[10px] text-emerald-300">Usa ◀ ▶ o Flechas PC</div>
+                            <div class="font-extrabold text-xs text-white">Gusanito Tama</div>
+                            <div class="text-[9px] text-emerald-300">Come frutas y crece</div>
                         </div>
                     </button>
-                    <button onclick="openMemoryMiniGame()" class="p-2.5 rounded-2xl bg-amber-950/90 hover:bg-amber-900 border border-amber-500/40 flex items-center gap-2.5 text-left transition">
+                    <button onclick="startMiniGame('JUMP')" class="p-2 rounded-2xl bg-orange-950/90 hover:bg-orange-900 border border-orange-500/40 flex items-center gap-2 text-left transition">
+                        <span class="text-2xl">🦘</span>
+                        <div>
+                            <div class="font-extrabold text-xs text-white">Salta Obstáculos</div>
+                            <div class="text-[9px] text-orange-300">Brinca cactus y rocas</div>
+                        </div>
+                    </button>
+                    <button onclick="openMemoryDifficultySelect()" class="p-2 rounded-2xl bg-amber-950/90 hover:bg-amber-900 border border-amber-500/40 flex items-center gap-2 text-left transition">
                         <span class="text-2xl">🃏</span>
                         <div>
                             <div class="font-extrabold text-xs text-white">Memoria Tama</div>
-                            <div class="text-[10px] text-amber-300">Encuentra parejas</div>
+                            <div class="text-[9px] text-amber-300">3 niveles de cartas</div>
                         </div>
                     </button>
-                    <button onclick="waterOrHarvestGarden()" class="p-2.5 rounded-2xl bg-teal-950/90 hover:bg-teal-900 border border-teal-500/40 flex items-center gap-2.5 text-left transition">
+                    <button onclick="openSimonMiniGame()" class="p-2 rounded-2xl bg-purple-950/90 hover:bg-purple-900 border border-purple-500/40 flex items-center gap-2 text-left transition">
+                        <span class="text-2xl">🎵</span>
+                        <div>
+                            <div class="font-extrabold text-xs text-white">Simón Musical</div>
+                            <div class="text-[9px] text-purple-300">Repite la melodía</div>
+                        </div>
+                    </button>
+                    <button onclick="waterOrHarvestGarden()" class="p-2 rounded-2xl bg-teal-950/90 hover:bg-teal-900 border border-teal-500/40 flex items-center gap-2 text-left transition">
                         <span class="text-2xl">${plantIcons[pStage]}</span>
                         <div>
                             <div class="font-extrabold text-xs text-white">Huerto Mágico</div>
-                            <div class="text-[10px] text-teal-300">${plantLabels[pStage]}</div>
+                            <div class="text-[9px] text-teal-300">${plantLabels[pStage]}</div>
                         </div>
                     </button>
                 </div>
@@ -3127,13 +3145,49 @@
             saveGame();
         }
 
-        // Minijuego Tamagotchi Uni: Encontrar parejas de cartas (Memoria)
-        function openMemoryMiniGame() {
+        // Selector de dificultad de Memoria Tama (Fácil: 8 cartas, Normal: 12 cartas, Difícil: 16 cartas)
+        function openMemoryDifficultySelect() {
             if (!canInteract()) return;
             cancelActiveMiniGame();
             SFX.select();
-            const icons = ['🍓', '🍓', '⭐', '⭐', '🍔', '🍔', '🎈', '🎈'];
-            miniGame.cards = icons.sort(() => Math.random() - 0.5).map((icon, idx) => ({
+            const drawer = document.getElementById('subMenuDrawer');
+            document.getElementById('drawerTitle').textContent = '🃏 ELIGE NIVEL DE MEMORIA TAMA';
+            document.getElementById('drawerContent').innerHTML = `
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="openMemoryMiniGame('EASY')" class="p-3 rounded-2xl bg-emerald-900/70 hover:bg-emerald-800 border border-emerald-400/50 flex flex-col items-center text-center transition">
+                        <span class="text-2xl mb-1">🐣</span>
+                        <span class="font-extrabold text-xs text-white">Fácil</span>
+                        <span class="text-[10px] text-emerald-300">8 cartas (4 pares)</span>
+                        <span class="text-[9px] font-bold text-amber-300 mt-1">Premio: +20 🪙</span>
+                    </button>
+                    <button onclick="openMemoryMiniGame('MEDIUM')" class="p-3 rounded-2xl bg-amber-900/70 hover:bg-amber-800 border border-amber-400/50 flex flex-col items-center text-center transition">
+                        <span class="text-2xl mb-1">⭐</span>
+                        <span class="font-extrabold text-xs text-white">Normal</span>
+                        <span class="text-[10px] text-amber-200">12 cartas (6 pares)</span>
+                        <span class="text-[9px] font-bold text-amber-300 mt-1">Premio: +35 🪙</span>
+                    </button>
+                    <button onclick="openMemoryMiniGame('HARD')" class="p-3 rounded-2xl bg-rose-900/70 hover:bg-rose-800 border border-rose-400/50 flex flex-col items-center text-center transition">
+                        <span class="text-2xl mb-1">👑</span>
+                        <span class="font-extrabold text-xs text-white">Difícil</span>
+                        <span class="text-[10px] text-rose-200">16 cartas (8 pares)</span>
+                        <span class="text-[9px] font-bold text-amber-300 mt-1">Premio: +55 🪙</span>
+                    </button>
+                </div>
+            `;
+            drawer.classList.remove('hidden');
+        }
+
+        function openMemoryMiniGame(difficulty = 'EASY') {
+            if (!canInteract()) return;
+            cancelActiveMiniGame();
+            SFX.select();
+            const allPool = ['🍓', '⭐', '🍔', '🎈', '🍕', '🍦', '👑', '⚽', '🍎', '🍰'];
+            const pairsCount = difficulty === 'HARD' ? 8 : (difficulty === 'MEDIUM' ? 6 : 4);
+            const selectedIcons = allPool.slice(0, pairsCount);
+            const deck = [...selectedIcons, ...selectedIcons];
+
+            miniGame.memoryDifficulty = difficulty;
+            miniGame.cards = deck.sort(() => Math.random() - 0.5).map((icon, idx) => ({
                 idx, icon, matched: false, flipped: false
             }));
             miniGame.flippedIndices = [];
@@ -3143,16 +3197,20 @@
 
         function renderMemoryDrawerBoard() {
             const drawer = document.getElementById('subMenuDrawer');
-            document.getElementById('drawerTitle').textContent = '🃏 MEMORIA TAMA (ENCUENTRA LAS PAREJAS)';
+            const diffLabel = { EASY: 'FÁCIL (8)', MEDIUM: 'NORMAL (12)', HARD: 'DIFÍCIL (16)' }[miniGame.memoryDifficulty || 'EASY'];
+            document.getElementById('drawerTitle').textContent = `🃏 MEMORIA • ${diffLabel}`;
+            const isCompact = (miniGame.cards.length > 8);
+            const btnHeight = miniGame.cards.length === 16 ? 'h-10 text-lg' : (isCompact ? 'h-11 text-xl' : 'h-14 text-2xl');
+
             const cardsHtml = miniGame.cards.map((c, i) => `
-                <button onclick="flipMemoryCard(${i})" class="h-14 rounded-2xl border-2 font-bold text-2xl flex items-center justify-center transition ${
+                <button onclick="flipMemoryCard(${i})" class="${btnHeight} rounded-xl border-2 font-bold flex items-center justify-center transition ${
                     c.matched ? 'bg-emerald-700/60 border-emerald-400' : (c.flipped ? 'bg-indigo-700 border-amber-300' : 'bg-slate-800 border-slate-600 hover:bg-slate-700')
                 }">
                     ${(c.flipped || c.matched) ? c.icon : '❓'}
                 </button>
             `).join('');
             document.getElementById('drawerContent').innerHTML = `
-                <div class="grid grid-cols-4 gap-2">${cardsHtml}</div>
+                <div class="grid grid-cols-4 gap-1.5">${cardsHtml}</div>
             `;
             drawer.classList.remove('hidden');
         }
@@ -3181,7 +3239,8 @@
                     if (miniGame.cards.every(c => c.matched)) {
                         setTimeout(() => {
                             closeDrawer();
-                            const reward = 25;
+                            const rewardMap = { EASY: 20, MEDIUM: 35, HARD: 55 };
+                            const reward = rewardMap[miniGame.memoryDifficulty || 'EASY'] || 25;
                             pet.coins += reward;
                             pet.happiness = Math.min(100, pet.happiness + 25);
                             SFX.evolve();
@@ -3198,7 +3257,112 @@
                         miniGame.flippedIndices = [];
                         miniGame.lockBoard = false;
                         renderMemoryDrawerBoard();
-                    }, 650);
+                    }, 600);
+                }
+            }
+        }
+
+        // Minijuego Clásico: Simón Musical (Secuencia de colores y notas de 8 bits)
+        const SIMON_PADS = [
+            { id: 0, icon: '🍓', label: 'Rojo',     freq: 392, bg: 'bg-rose-600',    lit: 'bg-rose-300 scale-105 ring-4 ring-white' },
+            { id: 1, icon: '💧', label: 'Azul',     freq: 523, bg: 'bg-sky-600',     lit: 'bg-sky-300 scale-105 ring-4 ring-white' },
+            { id: 2, icon: '⭐', label: 'Amarillo', freq: 659, bg: 'bg-amber-500',   lit: 'bg-amber-200 scale-105 ring-4 ring-white' },
+            { id: 3, icon: '🍀', label: 'Verde',    freq: 784, bg: 'bg-emerald-600', lit: 'bg-emerald-300 scale-105 ring-4 ring-white' }
+        ];
+
+        function openSimonMiniGame() {
+            if (!canInteract()) return;
+            cancelActiveMiniGame();
+            SFX.select();
+            miniGame.simonSeq = [];
+            miniGame.simonStep = 0;
+            miniGame.simonLit = -1;
+            miniGame.simonLocked = true;
+            document.getElementById('subMenuDrawer').classList.remove('hidden');
+            nextSimonRound();
+        }
+
+        function nextSimonRound() {
+            miniGame.simonSeq.push(Math.floor(Math.random() * 4));
+            miniGame.simonStep = 0;
+            miniGame.simonLocked = true;
+            renderSimonBoard('👀 ¡Observa la secuencia!');
+            miniGame.simonSeq.forEach((padIdx, i) => {
+                setTimeout(() => {
+                    miniGame.simonLit = padIdx;
+                    playTone(SIMON_PADS[padIdx].freq, 0.18, 'triangle');
+                    renderSimonBoard('👀 ¡Observa la secuencia!');
+                    setTimeout(() => {
+                        miniGame.simonLit = -1;
+                        const isLast = (i === miniGame.simonSeq.length - 1);
+                        if (isLast) miniGame.simonLocked = false;
+                        renderSimonBoard(isLast ? '👆 ¡Tu turno! Repite el orden' : '👀 ¡Observa la secuencia!');
+                    }, 260);
+                }, 480 + i * 520);
+            });
+        }
+
+        function renderSimonBoard(statusMsg = '') {
+            const round = miniGame.simonSeq ? miniGame.simonSeq.length : 1;
+            document.getElementById('drawerTitle').textContent = `🎵 SIMÓN MUSICAL • NIVEL ${round}/5`;
+            const buttonsHtml = SIMON_PADS.map(p => {
+                const isLit = (miniGame.simonLit === p.id);
+                return `
+                    <button onclick="handleSimonPress(${p.id})" class="h-14 rounded-2xl border-2 border-white/40 font-extrabold text-white flex items-center justify-center gap-2 transition transform ${isLit ? p.lit : p.bg}">
+                        <span class="text-2xl">${p.icon}</span>
+                        <span class="text-xs">${p.label}</span>
+                    </button>
+                `;
+            }).join('');
+            document.getElementById('drawerContent').innerHTML = `
+                <div class="text-center text-[11px] font-extrabold text-amber-300 mb-2">${statusMsg}</div>
+                <div class="grid grid-cols-2 gap-2">${buttonsHtml}</div>
+            `;
+        }
+
+        function handleSimonPress(padId) {
+            if (miniGame.simonLocked) return;
+            const pad = SIMON_PADS[padId];
+            playTone(pad.freq, 0.14, 'triangle');
+            miniGame.simonLit = padId;
+            renderSimonBoard('👆 ¡Sigue así!');
+            setTimeout(() => {
+                miniGame.simonLit = -1;
+                renderSimonBoard('👆 ¡Sigue así!');
+            }, 150);
+
+            if (padId !== miniGame.simonSeq[miniGame.simonStep]) {
+                miniGame.simonLocked = true;
+                SFX.bad();
+                const earned = Math.max(5, (miniGame.simonSeq.length - 1) * 8);
+                pet.coins += earned;
+                pet.happiness = Math.min(100, pet.happiness + 15);
+                setTimeout(() => {
+                    closeDrawer();
+                    showBanner(`¡CASI! GANASTE +${earned} 🪙 EN SIMÓN`);
+                    syncHeaderAndBars();
+                    saveGame();
+                }, 500);
+                return;
+            }
+
+            miniGame.simonStep++;
+            if (miniGame.simonStep >= miniGame.simonSeq.length) {
+                miniGame.simonLocked = true;
+                if (miniGame.simonSeq.length >= 5) {
+                    setTimeout(() => {
+                        closeDrawer();
+                        const prize = 45;
+                        pet.coins += prize;
+                        pet.happiness = Math.min(100, pet.happiness + 30);
+                        SFX.evolve();
+                        showBanner(`¡MAESTRO MUSICAL! +${prize} 🪙🎵`);
+                        unlockCareBadge('GENIUS', 'SUPER MEMORIA');
+                        syncHeaderAndBars();
+                        saveGame();
+                    }, 450);
+                } else {
+                    setTimeout(() => nextSimonRound(), 550);
                 }
             }
         }
@@ -3212,27 +3376,74 @@
             miniGame.items = [];
             miniGame.score = 0;
             miniGame.level = 1;
-            miniGame.timeLeft = 28;
+            miniGame.timeLeft = (type === 'SNAKE') ? 45 : 30;
+
+            const upBtn = document.getElementById('btnMinigameUp');
+            const downBtn = document.getElementById('btnMinigameDown');
+            if (upBtn && downBtn) {
+                if (type === 'SNAKE') {
+                    upBtn.classList.remove('hidden');
+                    upBtn.classList.add('flex');
+                    downBtn.classList.remove('hidden');
+                    downBtn.classList.add('flex');
+                } else {
+                    upBtn.classList.add('hidden');
+                    upBtn.classList.remove('flex');
+                    downBtn.classList.add('hidden');
+                    downBtn.classList.remove('flex');
+                }
+            }
+
+            if (type === 'SNAKE') {
+                miniGame.snake = [
+                    { x: 6, y: 4 },
+                    { x: 5, y: 4 },
+                    { x: 4, y: 4 }
+                ];
+                miniGame.snakeDir = { x: 1, y: 0 };
+                miniGame.nextSnakeDir = { x: 1, y: 0 };
+                miniGame.food = { x: 10, y: 4, icon: '🍎' };
+            } else if (type === 'JUMP') {
+                miniGame.jumpY = 0;
+                miniGame.jumpVy = 0;
+                miniGame.obstacles = [];
+            }
+
             document.getElementById('minigameControls').classList.remove('hidden');
             SFX.select();
         }
 
         function handleMinigameInput(dir) {
-            if (uiState.mode !== 'MINIGAME') return;
+            if (uiState.mode !== 'MINIGAME')
+
+            if (miniGame.type === 'JUMP') {
+                if (miniGame.jumpY <= 1) {
+                    miniGame.jumpVy = 6.6;
+                    SFX.tap();
+                }
+                return;
+            }
+
             const step = 24;
-            if (dir === 'LEFT') miniGame.playerX = Math.max(14, miniGame.playerX - step);
-            if (dir === 'RIGHT') miniGame.playerX = Math.min(186, miniGame.playerX + step);
+            if (dir === 'LEFT' || dir === 'LEFT_ABS') miniGame.playerX = Math.max(14, miniGame.playerX - step);
+            if (dir === 'RIGHT' || dir === 'RIGHT_ABS') miniGame.playerX = Math.min(186, miniGame.playerX + step);
         }
 
-        // Soporte completo de flechas del teclado y teclas A / D en PC
+        // Soporte completo de flechas del teclado, WASD y Barra Espaciadora en PC
         window.addEventListener('keydown', (e) => {
             if (uiState.mode !== 'MINIGAME') return;
             if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
                 e.preventDefault();
-                handleMinigameInput('LEFT');
+                handleMinigameInput(miniGame.type === 'SNAKE' ? 'LEFT_ABS' : 'LEFT');
             } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
                 e.preventDefault();
-                handleMinigameInput('RIGHT');
+                handleMinigameInput(miniGame.type === 'SNAKE' ? 'RIGHT_ABS' : 'RIGHT');
+            } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') {
+                e.preventDefault();
+                handleMinigameInput(miniGame.type === 'SNAKE' ? 'UP_ABS' : 'LEFT');
+            } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+                e.preventDefault();
+                if (miniGame.type === 'SNAKE') handleMinigameInput('DOWN_ABS');
             } else if (e.key === 'Escape') {
                 e.preventDefault();
                 finishMiniGame();
@@ -4674,7 +4885,161 @@
         function renderMinigameScene() {
             miniGame.level = Math.min(5, 1 + Math.floor(miniGame.score / 5));
 
-            ctx.fillStyle = miniGame.type === 'STARS' ? '#0f172a' : '#064e3b';
+            // 1. MINIJUEGO CLÁSICO: GUSANITO TAMA (SNAKE)
+            if (miniGame.type === 'SNAKE') {
+                ctx.fillStyle = '#064e3b';
+                ctx.fillRect(0, 0, 240, 220);
+
+                // Tablero cuadriculado (14 columnas x 10 filas de 14px)
+                const cols = 14, rows = 10, cell = 14;
+                const offX = 22, offY = 30;
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        ctx.fillStyle = (r + c) % 2 === 0 ? '#065f46' : '#047857';
+                        ctx.fillRect(offX + c * cell, offY + r * cell, cell, cell);
+                    }
+                }
+                ctx.strokeStyle = '#34d399';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(offX - 1, offY - 1, cols * cell + 2, rows * cell + 2);
+
+                // Barra superior
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(0, 0, 240, 24);
+                ctx.fillStyle = '#fde047';
+                ctx.font = '7px "Press Start 2P", monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText(`🐍 PTS:${miniGame.score} ◀GIRA▶`, 8, 16);
+                ctx.textAlign = 'right';
+                ctx.fillText(`${miniGame.timeLeft}S`, 232, 16);
+
+                // Avance del gusanito
+                const stepFrames = Math.max(8, 15 - miniGame.level);
+                if (uiState.frame % stepFrames === 0) {
+                    miniGame.snakeDir = miniGame.nextSnakeDir;
+                    const head = miniGame.snake[0];
+                    // Cruza los bordes de la pantalla para que sea amigable con niños
+                    const nx = (head.x + miniGame.snakeDir.x + cols) % cols;
+                    const ny = (head.y + miniGame.snakeDir.y + rows) % rows;
+
+                    if (miniGame.snake.some((seg, idx) => idx > 0 && seg.x === nx && seg.y === ny)) {
+                        SFX.bad();
+                        finishMiniGame();
+                        return;
+                    }
+
+                    miniGame.snake.unshift({ x: nx, y: ny });
+                    if (nx === miniGame.food.x && ny === miniGame.food.y) {
+                        miniGame.score++;
+                        SFX.eat();
+                        const foodIcons = ['🍎', '🍓', '🍒', '🍕', '⭐'];
+                        let fx = Math.floor(Math.random() * cols);
+                        let fy = Math.floor(Math.random() * rows);
+                        miniGame.food = {
+                            x: fx,
+                            y: fy,
+                            icon: foodIcons[Math.floor(Math.random() * foodIcons.length)]
+                        };
+                    } else {
+                        miniGame.snake.pop();
+                    }
+                }
+
+                // Dibujar fruta objetivo
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(miniGame.food.icon, offX + miniGame.food.x * cell + 7, offY + miniGame.food.y * cell + 8);
+
+                // Dibujar cuerpo y cabeza del gusanito con la paleta de la mascota
+                const pal = PET_PALETTES[pet ? pet.color : 'PINK'] || PET_PALETTES.PINK;
+                for (let i = miniGame.snake.length - 1; i >= 0; i--) {
+                    const seg = miniGame.snake[i];
+                    const sx = offX + seg.x * cell;
+                    const sy = offY + seg.y * cell;
+                    if (i === 0) {
+                        const frames = getCurrentPetFrames();
+                        drawSprite(frames[0], sx - 2, sy - 3, 1.4, miniGame.snakeDir.x >= 0);
+                    } else {
+                        ctx.fillStyle = i % 2 === 0 ? pal.body : pal.light;
+                        ctx.beginPath();
+                        ctx.roundRect(sx + 1, sy + 1, cell - 2, cell - 2, 4);
+                        ctx.fill();
+                    }
+                }
+                ctx.textBaseline = 'alphabetic';
+                return;
+            }
+
+            // 2. MINIJUEGO CLÁSICO: SALTA OBSTÁCULOS (RUNNER)
+            if (miniGame.type === 'JUMP') {
+                ctx.fillStyle = '#0284c7';
+                ctx.fillRect(0, 0, 240, 160);
+                ctx.fillStyle = '#4ade80';
+                ctx.fillRect(0, 160, 240, 60);
+                ctx.fillStyle = '#16a34a';
+                ctx.fillRect(0, 160, 240, 5);
+
+                ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                ctx.fillRect(0, 0, 240, 26);
+                ctx.fillStyle = '#fde047';
+                ctx.font = '7px "Press Start 2P", monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText(`🦘 PTS:${miniGame.score} ¡SALTA!`, 8, 17);
+                ctx.textAlign = 'right';
+                ctx.fillText(`${miniGame.timeLeft}S`, 232, 17);
+
+                // Física de salto
+                if (miniGame.jumpY > 0 || miniGame.jumpVy !== 0) {
+                    miniGame.jumpY += miniGame.jumpVy;
+                    miniGame.jumpVy -= 0.36;
+                    if (miniGame.jumpY <= 0) {
+                        miniGame.jumpY = 0;
+                        miniGame.jumpVy = 0;
+                    }
+                }
+
+                // Generar cactus o rocas
+                if (uiState.frame % Math.max(45, 78 - miniGame.level * 6) === 0) {
+                    miniGame.obstacles.push({
+                        x: 245,
+                        icon: Math.random() < 0.5 ? '🌵' : '🪨',
+                        passed: false
+                    });
+                }
+
+                const petDrawX = 34;
+                const petDrawY = Math.floor(126 - miniGame.jumpY);
+                const frames = getCurrentPetFrames();
+                drawSprite(frames[uiState.frame % 12 < 6 ? 0 : 1], petDrawX, petDrawY, 3, true);
+
+                ctx.font = '20px sans-serif';
+                ctx.textAlign = 'center';
+                const speed = 2.2 + miniGame.level * 0.35;
+                for (let i = miniGame.obstacles.length - 1; i >= 0; i--) {
+                    const ob = miniGame.obstacles[i];
+                    ob.x -= speed;
+                    ctx.fillText(ob.icon, ob.x, 158);
+
+                    if (!ob.passed && ob.x < petDrawX) {
+                        ob.passed = true;
+                        miniGame.score++;
+                        SFX.happy();
+                    }
+
+                    if (Math.abs(ob.x - (petDrawX + 18)) < 14 && miniGame.jumpY < 20) {
+                        SFX.bad();
+                        miniGame.score = Math.max(0, miniGame.score - 1);
+                        miniGame.obstacles.splice(i, 1);
+                        continue;
+                    }
+                    if (ob.x < -20) miniGame.obstacles.splice(i, 1);
+                }
+                return;
+            }
+
+            // 3. MINIJUEGO CLÁSICO: ATRAPA ESTRELLAS
+            ctx.fillStyle = '#0f172a';
             ctx.fillRect(0, 0, 240, 220);
 
             ctx.fillStyle = 'rgba(0,0,0,0.45)';
@@ -4697,7 +5062,7 @@
                     y: 28,
                     speed: baseSpeed + Math.random() * 0.35,
                     isBomb,
-                    icon: isBomb ? '💣' : (miniGame.type === 'STARS' ? '⭐' : '🍓')
+                    icon: isBomb ? '💣' : '⭐'
                 });
             }
 
